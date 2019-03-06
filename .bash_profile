@@ -16,4 +16,6 @@ export CPPFLAGS="-I/usr/local/opt/tcl-tk/include"
 # cabal
 CABALHOME=/Users/rmn/.cabal
 export PATH=${CABALHOME}/bin:${PATH}
+
+# dotfiles
 alias config='/usr/bin/git --git-dir=/Users/rmn/dots/ --work-tree=/Users/rmn'
