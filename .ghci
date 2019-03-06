@@ -1,0 +1,10 @@
+:set prompt "\x03BB> "
+:set prompt-cont " > "
+
+:set -XInstanceSigs
+:set -XLambdaCase
+:set -XOverloadedStrings
+
+:def hoogle \str -> return $ ":! hoogle search --color --count=10 " ++ show str
+:def hoogle-all \str -> return $ ":! hoogle search --color " ++ show str
+-- :def doc \str -> return $ ":! hoogle search --color --info " ++ show str
