@@ -213,7 +213,7 @@
 (setq TeX-auto-save t)
 
 					; ATS
-(setenv "PATSHOME" "/home/rmn/ats2")
+(setenv "PATSHOME" (concat (getenv "HOME") "/ats2"))
 (add-to-list 'load-path "~/ats2/utils/emacs/")
 (require 'ats2-mode)
 (require 'flymake-ats2)
@@ -296,8 +296,14 @@
 (require 'elpy)
 (elpy-enable)
 (defun rmn/setup-elpy-mode ()
+  (setq indent-tabs-mode t
+	tab-width 4
+	python-indent-offset 4)
   (highlight-indentation-mode -1))
+(add-hook 'python-mode-hook #'rmn/setup-elpy-mode)
 (add-hook 'elpy-mode-hook #'rmn/setup-elpy-mode)
+;; Activate default environment
+(pyvenv-activate (concat (getenv "HOME") "/pyenv/base"))
 
 					; YAML
 (require 'yaml-mode)
