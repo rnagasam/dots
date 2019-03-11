@@ -16,7 +16,7 @@
  '(menu-bar-mode nil)
  '(package-selected-packages
    (quote
-    (slime helm afternoon-theme dockerfile-mode yaml-mode docker chess haskell-mode company-coq flymake exec-path-from-shell color-theme-modern bbdb elpy proof-general tuareg auctex smex paredit ace-window company magit)))
+    (sicp slime helm afternoon-theme dockerfile-mode yaml-mode docker chess haskell-mode company-coq flymake exec-path-from-shell color-theme-modern bbdb elpy proof-general tuareg auctex smex paredit ace-window company magit)))
  '(safe-local-variable-values (quote ((lexical-binding . t))))
  '(send-mail-function (quote smtpmail-send-it))
  '(show-paren-mode t)

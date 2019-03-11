@@ -233,7 +233,7 @@
  	tab-width 4
 	indent-tabs-mode t
 	show-trailing-whitespace t)
-  (linum-mode t)
+  (display-line-numbers-mode t)
   (electric-pair-mode t)
   (local-set-key (kbd "M-*") 'pop-tag-mark)
   (local-set-key (kbd "C-c o") 'ff-find-other-file))
