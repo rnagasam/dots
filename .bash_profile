@@ -1,6 +1,11 @@
 # Bash completion
 [[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]] && . "/usr/local/etc/profile.d/bash_completion.sh"
 
+# editor
+export ALTERNATE_EDITOR=""
+export EDITOR="emacsclient -t"
+export VISUAL="emacsclient -c -a emacs"
+
 # opam
 test -r /Users/rmn/.opam/opam-init/init.sh && . /Users/rmn/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true
 

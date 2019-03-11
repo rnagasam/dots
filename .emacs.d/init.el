@@ -33,9 +33,14 @@
 
 					; Server
 (require 'server)
-;; (if (not (server-running-p))
-;;     (server-start))
-(server-start)
+(if (not (server-running-p))
+    (server-start))
+
+(defun server-shutdown ()
+  "Save buffers, Quit, and Shutdown (kill) server"
+  (interactive)
+  (save-some-buffers)
+  (kill-emacs))
 
 					; General
 (defalias 'yes-or-no-p 'y-or-n-p)
@@ -74,7 +79,8 @@
 	     '("^\\*shell\\*$" . (display-buffer-same-window)))
 
 					; Exec path from shell
-(exec-path-from-shell-initialize)
+(when (eq system-type 'darwin)
+  (exec-path-from-shell-initialize))
 
 					; Handling windows
 (winner-mode 1)
@@ -400,6 +406,9 @@
 
 					; Miscellaneous
 (defun rmn/change-aws-res-hostname (arg)
+  "Change hostname of a particular AWS machine in `.ssh/config'.  This
+is required when the ec2 instance is restarted.  The machine can be
+accessed by going to `/ssh:res:<dir>'"
   (interactive "MNew Hostname: ")
   (let ((ssh-config-file "~/.ssh/config"))
     (with-current-buffer (find-file ssh-config-file)
@@ -410,4 +419,3 @@
 	(forward-line)
 	(kill-whole-line)
 	(insert "     HostName " arg "\n")))))
-
