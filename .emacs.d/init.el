@@ -63,6 +63,12 @@
 (setq language-environment "UTF-8")
 (setq reb-re-syntax 'string)
 
+					; Terminal encoding settings
+(when (eq system-type 'darwin)
+  (set-terminal-coding-system 'utf-8)
+  (set-keyboard-coding-system 'utf-8))
+(prefer-coding-system 'utf-8)
+
 					; Info
 (require 'info)
 (add-hook 'Info-mode-hook
