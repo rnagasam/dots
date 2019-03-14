@@ -69,6 +69,12 @@
   (set-keyboard-coding-system 'utf-8))
 (prefer-coding-system 'utf-8)
 
+					; Comint
+(require 'comint)
+(setq comint-buffer-maximum-size 2048
+      comint-prompt-read-only t)
+(define-key global-map (kbd "C-c M-o") 'comint-clear-buffer)
+
 					; Info
 (require 'info)
 (add-hook 'Info-mode-hook
@@ -259,7 +265,7 @@
 (setq proof-auto-raise-buffers nil
       proof-three-window-enable t
       proof-output-tooltips t
-      ;; proof-script-fly-past-comments t
+      proof-splash-enable nil
       proof-follow-mode 'followdown)
 
 (defun rmn/setup-coq-mode ()
@@ -316,6 +322,9 @@
 (add-hook 'elpy-mode-hook #'rmn/setup-elpy-mode)
 ;; Activate default environment
 (pyvenv-activate (concat (getenv "HOME") "/pyenv/base"))
+
+					; Scheme
+(load-library "xscheme")
 
 					; YAML
 (require 'yaml-mode)
