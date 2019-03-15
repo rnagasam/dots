@@ -86,6 +86,10 @@
 (load-library "dired-x")
 (setq dired-dwim-target t)
 
+					; Shell
+(require 'shell)
+(define-key shell-mode-map (kbd "SPC") 'comint-magic-space)
+
 					; "M-x shell RET" in current buffer
 (add-to-list 'display-buffer-alist
 	     '("^\\*shell\\*$" . (display-buffer-same-window)))
