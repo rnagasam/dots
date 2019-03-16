@@ -31,6 +31,31 @@
 	       (cons "melpa" (concat proto "://melpa.org/packages/")) t))
 (package-initialize)
 
+(setq rmn/package-list
+      '(ace-window
+	bbdb
+	color-theme-modern
+	company
+	docker
+	dockerfile-mode
+	elpy
+	haskell-mode
+	helm
+	magit
+	paredit
+	slime
+	smex
+	tuareg
+	yaml-mode))
+
+(unless package-archive-contents
+  (package-refresh-contents))
+
+(dolist (package rmn/package-list)
+  (unless (package-installed-p package)
+    (package-install package)))
+
+
 					; Server
 (require 'server)
 (if (not (server-running-p))
@@ -235,11 +260,12 @@
 (setq TeX-auto-save t)
 
 					; ATS
-(setenv "PATSHOME" (concat (getenv "HOME") "/ats2"))
-(add-to-list 'load-path "~/ats2/utils/emacs/")
-(require 'ats2-mode)
-(require 'flymake-ats2)
-(add-hook 'ats-mode-hook 'flymake-mode)
+(when (file-exists-p (concat (getenv "HOME") "/ats2"))
+  (setenv "PATSHOME" (concat (getenv "HOME") "/ats2"))
+  (add-to-list 'load-path "~/ats2/utils/emacs/")
+  (require 'ats2-mode)
+  (require 'flymake-ats2)
+  (add-hook 'ats-mode-hook 'flymake-mode))
 
 (defun rmn/setup-ats-mode ()
   (electric-pair-mode t)
@@ -394,14 +420,15 @@
 (setq tramp-persistency-file-name
       (expand-file-name "tramp" user-emacs-directory))
 
-(connection-local-set-profile-variables
- 'remote-bash
- '((explicit-shell-file-name . "/bin/bash")
-   (explicit-bash-args . ("-i"))))
+(unless (version< emacs-version "26.1")
+  (connection-local-set-profile-variables
+   'remote-bash
+   '((explicit-shell-file-name . "/bin/bash")
+     (explicit-bash-args . ("-i"))))
 
-(connection-local-set-profiles
- '(:application tramp :protocol "ssh" :machine "res")
- 'remote-bash)
+  (connection-local-set-profiles
+   '(:application tramp :protocol "ssh" :machine "res")
+   'remote-bash))
 
 					; BBDB
 (require 'bbdb)
