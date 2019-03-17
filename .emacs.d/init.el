@@ -43,6 +43,7 @@
 	helm
 	magit
 	paredit
+	sicp
 	slime
 	smex
 	tuareg
@@ -66,6 +67,16 @@
   (interactive)
   (save-some-buffers)
   (kill-emacs))
+
+					; Windows
+(defun rmn/load-windows ()
+  (let ((cf (expand-file-name "init-windows.el"
+			      user-emacs-directory)))
+    (if (file-exists-p cf)
+	(load cf))))
+
+(when (eq system-type 'windows-nt)
+  (add-hook 'after-init-hook #'rmn/load-windows))
 
 					; General
 (defalias 'yes-or-no-p 'y-or-n-p)
