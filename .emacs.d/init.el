@@ -214,6 +214,15 @@
 					; Handle buffers
 (define-key global-map (kbd "C-x C-b") 'ibuffer)
 
+					; Protect buffers from being killed
+(defun rmn/protect-buffers ()
+  (let ((protected '("*scratch*" "*Messages*")))
+    (dolist (buf protected)
+      (with-current-buffer buf
+	(emacs-lock-mode 'kill)))))
+
+(add-hook 'after-init-hook #'rmn/protect-buffers)
+
 
 					; Disabled commands
 (put 'narrow-to-region 'disabled nil)
@@ -269,6 +278,10 @@
 					; AucTeX
 (setq TeX-parse-self t)
 (setq TeX-auto-save t)
+
+(add-hook 'LaTeX-mode-hook 'visual-line-mode)
+(add-hook 'LaTeX-mode-hook 'flyspell-mode)
+(add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
 
 					; ATS
 (when (file-exists-p (concat (getenv "HOME") "/ats2"))
