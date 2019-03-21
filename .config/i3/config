@@ -42,7 +42,7 @@ bindsym $mod+Shift+q kill
 # installed.
 # bindsym $mod+d exec --no-startup-id i3-dmenu-desktop
 # bindsym $mod+p exec "rofi -combi-modi window,run,drun,ssh -show combi"
-bindsym $mod+p exec "rofi -show combi"
+bindsym $mod+p exec --no-startup-id "rofi -show combi"
 
 # change focus
 bindsym $mod+h focus left
@@ -170,6 +170,7 @@ bindsym $mod+r mode "resize"
 bar {
         status_command i3status
 	position top
+	tray_output none
 	colors {
 	       background #000000
 	       statusline #ffffff
@@ -181,6 +182,32 @@ bar {
 	}
 }
 
+# Lock, Shutdown, Reboot, ...
+
+set $Locker i3lock -e -i ~/Pictures/wall5.png && sleep 1
+set $mode_system System (l) lock, (e) logout, (s) suspend, (h) hibernate, (r) reboot, (Shit+s) shutdown
+mode "$mode_system" {
+     bindsym l exec --no-startup-id $Locker, mode "default"
+     bindsym e exec --no-startup-id i3-msg exit, mode "default"
+     bindsym s exec --no-startup-id $Locker && systemctl suspend, mode "default"
+     bindsym h exec --no-startup-id $Locker && systemctl hibernate, mode "default"
+     bindsym r exec --no-startup-id systemctl reboot, mode "default"
+     bindsym Shift+s exec --no-startup-id systemctl poweroff -i, mode "default"
+
+     # Back to normal
+     bindsym Return mode "default"
+     bindsym Escape mode "default"
+}
+
+bindsym $mod+x mode "$mode_system"
+
+# Handle floating dialogs
+for_window [window_role="pop-up"] floating enable
+for_window [window_role="task_dialog"] floating enable
+
+# Hide i3bar
+bindsym $mod+m bar mode toggle
+
 # Scratchpad
 bindsym $mod+Shift+minus move scratchpad
 bindsym $mod+minus scratchpad show
@@ -190,8 +217,11 @@ gaps inner 5
 gaps outer 5
 for_window [class="^.*"] border pixel 4
 
+smart_gaps on
+smart_borders no_gaps
+
 # Jump to urgent window
-bindsym $mod+x [urgent=latest] focus
+bindsym $mod+y [urgent=latest] focus
 
 # Brightness controls
 bindsym XF86MonBrightnessUp exec light -A 5
@@ -203,4 +233,11 @@ bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume 0 -5%
 bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute 0 toggle
 
 # Wallpaper
-exec --no-startup-id feh --bg-scale ~/Pictures/wall1.jpg
+exec --no-startup-id feh --bg-scale ~/Pictures/wall5.png
+
+# Place terminal in scratchpad on startup
+for_window [instance="__scratchpad"] move scratchpad
+exec --no-startup-id i3-sensible-terminal -name __scratchpad
+
+# Emacsclient
+bindsym $mod+c exec --no-startup-id emacsclient -c
