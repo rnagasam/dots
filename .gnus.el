@@ -1,10 +1,10 @@
 (require 'nnir)
 
 (setq gnus-select-method
-      '(nnimap "outlook"
-	       (nnimap-address "outlook.office365.com")
-	       (nnimap-server-port "imaps")
-	       (nnimap-stream ssl)))
+      '(nnmaildir "Stevens"
+		  (directory "~/Mail/Stevens/")
+		  (directory-files nnheader-directory-files-safe)
+		  (get-new-mail nil)))
 
 (setq gnus-secondary-select-methods
       '((nntp "news.gmane.org")))
@@ -13,10 +13,15 @@
       gnus-fetch-old-headers 'some
       gnus-inhibit-images nil)
 
-(setq send-mail-function 'smtpmail-sent-it
-      message-send-mail-function 'smtpmail-send-it
-      smtpmail-smtp-server "outlook.office365.com"
-      smtpmail-smtp-service 587)
+(setq mail-user-agent 'gnus-user-agent
+      read-mail-command 'gnus)
+
+(setq send-mail-function 'message-send-mail-with-sendmail
+      sendmail-program "msmtp")
+
+(setq gnus-message-archive-group
+      '(("Stevens" "nnimap+stevens:Stevens/Sent")
+	(".*" ,(format-time-string "sent/%Y-%m"))))
 
 (setq gnus-use-cache t)
 

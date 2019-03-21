@@ -1,0 +1,30 @@
+[general]
+
+accounts = Stevens
+ignore_UID_on_errors = yes
+pythonfile = ~/.offlineimap.py
+
+[Account Stevens]
+
+localrepository = StevensLocal
+remoterepository = StevensRemote
+
+[Repository StevensLocal]
+
+type = Maildir
+localfolders = ~/Mail/Stevens
+sep = /
+
+[Repository StevensRemote]
+
+type = IMAP
+remotehost = outlook.office365.com
+ssl = yes
+sslcacertfile = /etc/ssl/certs/ca-certificates.crt
+remoteport = 993
+remoteuser = rnagasam@stevens.edu
+remotepasseval = get_pass()
+createfolders = False
+quick = 10
+keepalive = 60
+holdconnectionopen = yes
