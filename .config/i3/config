@@ -41,7 +41,8 @@ bindsym $mod+Shift+q kill
 # shipping a .desktop file. It is a wrapper around dmenu, so you need that
 # installed.
 # bindsym $mod+d exec --no-startup-id i3-dmenu-desktop
-bindsym $mod+p exec "rofi -combi-modi window,drun -show combi -modi combi"
+# bindsym $mod+p exec "rofi -combi-modi window,run,drun,ssh -show combi"
+bindsym $mod+p exec "rofi -show combi"
 
 # change focus
 bindsym $mod+h focus left
@@ -179,6 +180,10 @@ bar {
 	       urgent_workspace #ffffff #900000
 	}
 }
+
+# Scratchpad
+bindsym $mod+Shift+minus move scratchpad
+bindsym $mod+minus scratchpad show
 
 # Gaps
 gaps inner 5
