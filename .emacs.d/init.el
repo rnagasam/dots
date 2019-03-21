@@ -33,16 +33,21 @@
 
 (setq rmn/package-list
       '(ace-window
+	auctex
 	bbdb
 	color-theme-modern
 	company
+	company-coq
 	docker
 	dockerfile-mode
 	elpy
+	erlang
 	haskell-mode
 	helm
 	magit
 	paredit
+	pdf-tools
+	proof-general
 	sicp
 	slime
 	smex
@@ -104,6 +109,17 @@
   (set-terminal-coding-system 'utf-8)
   (set-keyboard-coding-system 'utf-8))
 (prefer-coding-system 'utf-8)
+
+					; EXWM
+(setq rmn/use-exwm nil)
+
+(when rmn/use-exwm
+  (require 'exwm)
+  (require 'exwm-config)
+  (require 'exwm-systemtray)
+  (exwm-enable)
+  (exwm-config-default)
+  (exwm-systemtray-enable))
 
 					; Comint
 (require 'comint)
@@ -253,6 +269,9 @@
 					; LaTeX
 (setq TeX-auto-save t)
 (setq TeX-parse-self t)
+
+					; PDF files
+(pdf-loader-install)
 
 					; Magit
 (define-key global-map (kbd "C-x g") 'magit-status)
