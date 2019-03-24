@@ -1,10 +1,8 @@
 [user]
 	name = Ramana Nagasamudram
 	email = rnagasam@stevens.edu
-	signingkey = 72FE1ADE5FCF2D25
-[credential]
-	helper = osxkeychain
+	signingkey = 168DFC8FE5913AD9
 [core]
-	excludesfile = /Users/rmn/.gitignore
+	excludesfile = /home/rmn/.gitignore
 [commit]
 	gpgsign = true
