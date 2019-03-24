@@ -44,6 +44,8 @@
 	erlang
 	haskell-mode
 	helm
+	ido-vertical-mode
+	imenu-anywhere
 	magit
 	paredit
 	pdf-tools
@@ -52,7 +54,8 @@
 	slime
 	smex
 	tuareg
-	yaml-mode))
+	yaml-mode
+	yasnippet-snippets))
 
 (unless package-archive-contents
   (package-refresh-contents))
@@ -104,6 +107,8 @@
 (setq language-environment "UTF-8")
 (setq reb-re-syntax 'string)
 
+(setq enable-recursive-minibuffers t)
+
 					; Terminal encoding settings
 (when (eq system-type 'darwin)
   (set-terminal-coding-system 'utf-8)
@@ -136,7 +141,8 @@
 
 					; Dired
 (load-library "dired-x")
-(setq dired-dwim-target t)
+(setq dired-dwim-target t
+      wdired-allow-to-change-permissions t)
 
 					; Shell
 (require 'shell)
@@ -164,14 +170,15 @@
 (ffap-bindings)
 (setq ffap-require-prefix t)
 
-(setq rmn/use-ido nil)
-(setq rmn/use-helm t)
+(setq rmn/use-ido t)
+(setq rmn/use-helm (not rmn/use-ido))
 
 					; Ido
 (when rmn/use-ido
   (require 'ido)
+  ; (require 'ido-vertical-mode)
   (setq ido-enable-flex-matching t
-	ido-use-virtual-buffers nil
+	ido-use-virtual-buffers t
 	ido-everywhere t
 	ido-use-filename-at-point 'guess
 	ido-use-url-at-point t
@@ -179,13 +186,28 @@
 	ido-case-fold t
 	ido-enable-regexp t)
   (ido-mode 1)
-					; M-x
+  ; (ido-vertical-mode 1)
+  ; (setq ido-vertical-define-keys 'C-n-and-C-p-only)
+
+  (define-key ido-file-dir-completion-map (kbd "C-l")
+    'ido-delete-backward-updir)
+					; M-x -- smex
   (require 'smex)
   (setq smex-save-file (expand-file-name ".smex-items" user-emacs-directory))
   (smex-initialize)
   (define-key global-map (kbd "M-x") 'smex)
   (define-key global-map (kbd "M-X") 'smex-major-mode-commands)
-  (define-key global-map (kbd "C-c C-c M-x") 'execute-extended-command))
+  (define-key global-map (kbd "C-c C-c M-x") 'execute-extended-command)
+
+					; smex hyphen on space
+  (defadvice smex (around space-inserts-hyphen activate compile)
+    (let ((ido-cannot-complete-command
+	   `(lambda ()
+	      (interactive)
+	      (if (string= " " (this-command-keys))
+		  (insert ?-)
+		(funcall ,ido-cannot-complete-command)))))
+      ad-do-it)))
 
 
 					; Helm
@@ -255,10 +277,22 @@
       kept-old-versions 2
       version-control t)
 
+					; Mails
+(setq mail-user-agent 'gnus-user-agent
+      read-mail-command 'gnus)
+
+(setq send-mail-function 'message-send-mail-with-sendmail
+      message-send-mail-function 'message-send-mail-with-sendmail
+      sendmail-program "msmtp"
+      message-sendmail-extra-arguments '("-a" "default"))
+
 					; Man
 (require 'man)
 (setq Man-notify-method 'pushy)
 (define-key global-map (kbd "C-c m") 'man-page-at-point)
+
+					; Imenu
+(define-key global-map (kbd "C-.") 'imenu-anywhere)
 
 					; Text mode
 (add-hook 'text-mode-hook
@@ -293,6 +327,10 @@
 (add-hook 'lisp-mode-hook #'enable-paredit-mode)
 (add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
 (add-hook 'scheme-mode-hook #'enable-paredit-mode)
+
+					; Yasnippet
+(require 'yasnippet)
+(yas-global-mode 1)
 
 					; AucTeX
 (setq TeX-parse-self t)
@@ -481,6 +519,11 @@
 (setq bbdb-file (expand-file-name ".bbdb" user-emacs-directory)
       bbdb-offer-to-create 'auto
       bbdb-complete-mail-allow-cycling t)
+
+					; EasyPG
+					; Use Emacs pinentry
+(setenv "GPG_AGENT_INFO" nil)
+(setq epa-file-cache-passphrase-for-symmetric-encryption t)
 
 					; Chess
 (setq chess-images-default-size 60)
