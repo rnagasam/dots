@@ -115,6 +115,32 @@
   (set-keyboard-coding-system 'utf-8))
 (prefer-coding-system 'utf-8)
 
+					; Binary movement
+(let ((beg -1)
+      (end -1)
+      (prev-mid -1))
+  (defun backward-binary ()
+    (interactive)
+    (if (/= prev-mid (point))
+	(setq beg -1 end -1)
+      (setq end prev-mid))
+    (if (< beg 0) (setq beg (line-beginning-position)
+			end (point)))
+    (setq prev-mid (/ (+ beg end) 2))
+    (goto-char prev-mid))
+  (defun forward-binary ()
+    (interactive)
+    (if (/= prev-mid (point))
+	(setq beg -1 end -1)
+      (setq beg prev-mid))
+    (if (< end 0) (setq beg (point)
+			end (line-end-position)))
+    (setq prev-mid (/ (+ beg end) 2))
+    (goto-char prev-mid)))
+
+(define-key global-map (kbd "C-c j") 'backward-binary)
+(define-key global-map (kbd "C-c k") 'forward-binary)
+
 					; EXWM
 (setq rmn/use-exwm nil)
 
