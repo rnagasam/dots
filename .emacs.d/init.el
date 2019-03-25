@@ -292,7 +292,7 @@
 (define-key global-map (kbd "C-c m") 'man-page-at-point)
 
 					; Imenu
-(define-key global-map (kbd "C-.") 'imenu-anywhere)
+(define-key global-map (kbd "C-c .") 'imenu-anywhere)
 
 					; Text mode
 (add-hook 'text-mode-hook

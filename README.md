@@ -35,5 +35,5 @@ Alternatively, run `emacs --daemon` on startup (maybe in `xinitrc`?).
 For `offlineimap` and `msmtp`, you need to create the files
 `$HOME/.offlineimappass.gpg` and `$HOME/.msmtp-stevens.gpg` containing
 passwords for the respective email accounts.  Emacs will automatically
-encrypt/decrypt files with a `.gpg' extension, so it's the easiest to
+encrypt/decrypt files with a `.gpg` extension, so it's the easiest to
 create these from within the editor.
