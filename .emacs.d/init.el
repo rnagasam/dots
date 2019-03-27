@@ -38,6 +38,7 @@
 	color-theme-modern
 	company
 	company-coq
+	crux
 	docker
 	dockerfile-mode
 	elpy
@@ -140,6 +141,14 @@
 
 (define-key global-map (kbd "C-c j") 'backward-binary)
 (define-key global-map (kbd "C-c k") 'forward-binary)
+
+					; Crux
+(require 'crux)
+(crux-reopen-as-root-mode)
+(define-key emacs-lisp-mode-map (kbd "C-c e") 'crux-eval-and-replace)
+(define-key global-map (kbd "C-c D") 'crux-delete-file-and-buffer)
+(define-key global-map (kbd "C-c TAB")
+  'crux-indent-rigidly-and-copy-to-clipboard)
 
 					; EXWM
 (setq rmn/use-exwm nil)
