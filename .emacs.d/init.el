@@ -104,11 +104,11 @@
 (global-subword-mode 1)
 (column-number-mode 1)
 (size-indication-mode 1)
+(fringe-mode '(1 . 1))
+(global-auto-revert-mode 1)
 
 (setq language-environment "UTF-8")
 (setq reb-re-syntax 'string)
-
-(setq enable-recursive-minibuffers t)
 
 					; Terminal encoding settings
 (when (eq system-type 'darwin)
@@ -225,7 +225,7 @@
   ; (setq ido-vertical-define-keys 'C-n-and-C-p-only)
 
   (define-key ido-file-dir-completion-map (kbd "C-l")
-    'ido-delete-backward-updir)
+    'ido-delete-backward-word-updir)
 					; M-x -- smex
   (require 'smex)
   (setq smex-save-file (expand-file-name ".smex-items" user-emacs-directory))
@@ -335,6 +335,9 @@
 	    (setq fill-column 74)
 	    (turn-on-auto-fill)))
 
+					; Compile
+(define-key global-map (kbd "C-c p") 'compile)
+
 					; LaTeX
 (setq TeX-auto-save t)
 (setq TeX-parse-self t)
@@ -397,7 +400,7 @@
  	tab-width 4
 	indent-tabs-mode t
 	show-trailing-whitespace t)
-  (display-line-numbers-mode t)
+  ; (display-line-numbers-mode t)
   (electric-pair-mode t)
   (local-set-key (kbd "M-*") 'pop-tag-mark)
   (local-set-key (kbd "C-c o") 'ff-find-other-file))
@@ -480,6 +483,8 @@
 					; Org mode
 (require 'org)
 (require 'org-agenda)
+(require 'ox-beamer)
+(require 'ox-latex)
 
 (setq org-log-done 'time
       org-enforce-todo-dependencies t
