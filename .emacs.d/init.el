@@ -110,6 +110,8 @@
 (setq language-environment "UTF-8")
 (setq reb-re-syntax 'string)
 
+(global-unset-key (kbd "C-z")) ; suspend-frame
+
 					; Terminal encoding settings
 (when (eq system-type 'darwin)
   (set-terminal-coding-system 'utf-8)
@@ -141,6 +143,24 @@
 
 (define-key global-map (kbd "C-c j") 'backward-binary)
 (define-key global-map (kbd "C-c k") 'forward-binary)
+
+					; vim like "Change In"
+(defun seek-backward-to-char (chr)
+  "Seek backwards to a character"
+  (interactive "cSeek back to char: ")
+  (while (not (= (char-after) chr))
+    (forward-char -1)))
+
+(defun delete-between-pair (char)
+  "Delete in between the given pair"
+  (interactive "cDelete between char: ")
+  (seek-backward-to-char char)
+  (forward-char 1)
+  (zap-to-char 1 char)
+  (insert char)
+  (forward-char -1))
+
+(define-key global-map (kbd "C-c i") 'delete-between-pair)
 
 					; Crux
 (require 'crux)
