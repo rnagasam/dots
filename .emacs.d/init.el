@@ -152,13 +152,24 @@
     (forward-char -1)))
 
 (defun delete-between-pair (char)
-  "Delete in between the given pair"
+  "Delete in between the given pair.  Handles opening and closing
+brackets."
   (interactive "cDelete between char: ")
-  (seek-backward-to-char char)
-  (forward-char 1)
-  (zap-to-char 1 char)
-  (insert char)
-  (forward-char -1))
+  (let ((pairs (mapcar (lambda (x)
+			 (cons (string-to-char (car x))
+			       (string-to-char (cdr x))))
+		       '(("<" . ">")
+			 ("{" . "}")
+			 ("(" . ")")
+			 ("[" . "]"))))
+	endch)
+    (setq endch (or (cdr (assoc char pairs))
+		    char))
+    (seek-backward-to-char char)
+    (forward-char 1)
+    (zap-to-char 1 endch)
+    (insert endch)
+    (forward-char -1)))
 
 (define-key global-map (kbd "C-c i") 'delete-between-pair)
 
