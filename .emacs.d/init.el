@@ -457,6 +457,10 @@ brackets."
   (setq coq-compile-before-require t))
 (add-hook 'coq-mode-hook #'rmn/setup-coq-mode)
 
+					; Erlang
+(require 'erlang)
+(add-hook 'erlang-mode-hook #'company-erlang-init)
+
 					; Haskell
 (require 'haskell-mode)
 (defun rmn/setup-haskell-mode ()
