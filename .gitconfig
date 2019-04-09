@@ -4,5 +4,7 @@
 	signingkey = 168DFC8FE5913AD9
 [core]
 	excludesfile = /home/rmn/.gitignore
+	pager = `test \"$TERM\" = \"dumb\" && echo cat || echo less`
+	editor = emacsclient -t
 [commit]
 	gpgsign = true
