@@ -531,15 +531,27 @@ brackets."
       org-agenda-show-all-dates t
       org-agenda-start-on-weekday nil
       org-agenda-skip-deadline-if-done t
-      org-agenda-skip-scheduled-if-done t)
+      org-agenda-skip-scheduled-if-done t
+      org-use-fast-todo-selection t)
+
+(setq org-todo-keywords
+      '((sequence "TODO(t)" "NEXT(t)" "WAITING(w@/!)" "HOLD(h@/!)"
+		  "MEETING(m)" "PHONE(p)" "|" "DONE(d)")))
 
 (setq org-capture-templates
-      '(("t" "Todo" entry (file "~/.org/tasks.org")
-	 "* TODO %?\n %i\n  %a" :empty-lines 1)))
+      '(("t" "Todo" entry (file+headline "~/.org/tasks.org" "Tasks")
+	 "** TODO %?\n%i   %u" :empty-lines 1)
+	("T" "Todo with link" entry (file+headline "~/.org/tasks.org" "Tasks")
+	 "** TODO %?\n%i   %u\n   %A" :empty-lines 1)
+	("m" "Meeting" entry (file+headline "~/.org/tasks.org" "Events")
+	 "** MEETING %?\n   SCHEDULED: %^T" :empty-lines 1)
+	("p" "Phone call" entry (file+headline "~/.org/tasks.org" "Events")
+	 "** PHONE %?\n   SCHEDULED: %^T" :empty-lines 1)))
 
-(define-key org-mode-map (kbd "C-'") nil) ;; originally `org-cycle-agenda-files'
+(define-key org-mode-map (kbd "C-'") nil) ; originally `org-cycle-agenda-files'
 (define-key global-map (kbd "C-c l") 'org-store-link)
 (define-key global-map (kbd "C-c a") 'org-agenda)
+(define-key global-map (kbd "<f12>") 'org-agenda)
 (define-key global-map (kbd "<f9> r") 'org-capture)
 
 (defun rmn/setup-org-mode ()
