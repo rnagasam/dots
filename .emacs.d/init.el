@@ -121,9 +121,6 @@
 (prefer-coding-system 'utf-8)
 
 					; Movement
-(defvar rmn/movement-map (make-sparse-keymap)
-  "Keymap for bindings related to movements.")
-
 (let ((beg -1)
       (end -1)
       (prev-mid -1))
@@ -148,25 +145,25 @@
     (goto-char prev-mid)
     (set-transient-map rmn/movement-map)))
 
-(defun rmn/forward-paragraph ()
-  "`forward-paragraph' but sets `rmn/movement-map' as a
-`transient-map'"
-  (interactive)
-  (forward-paragraph)
-  (set-transient-map rmn/movement-map))
+(defvar rmn/movement-map (make-sparse-keymap)
+  "Keymap for bindings related to movements.")
 
-(defun rmn/backward-paragraph ()
-  "`backward-paragraph' but sets `rmn/movement-map' as a
-`transient-map'"
-  (interactive)
-  (backward-paragraph)
-  (set-transient-map rmn/movement-map))
+(defmacro rmn/movement-persistent (f)
+  `(lambda ()
+     (interactive)
+     (funcall ,f)
+     (set-transient-map rmn/movement-map)))
+
+(defmacro rmn/movement-define-key (k f)
+  `(define-key rmn/movement-map ,k (rmn/movement-persistent ,f)))
 
 (define-key global-map (kbd "C-c m") rmn/movement-map)
-(define-key rmn/movement-map (kbd "p") 'backward-binary)
-(define-key rmn/movement-map (kbd "n") 'forward-binary)
-(define-key rmn/movement-map (kbd "}") 'rmn/forward-paragraph)
-(define-key rmn/movement-map (kbd "{") 'rmn/backward-paragraph)
+
+					; Repeatable keybindings
+(rmn/movement-define-key (kbd "n") #'forward-binary)
+(rmn/movement-define-key (kbd "p") #'backward-binary)
+(rmn/movement-define-key (kbd "}") #'forward-paragraph)
+(rmn/movement-define-key (kbd "{") #'backward-paragraph)
 
 					; vim like "Change In"
 (defun seek-backward-to-char (chr)
