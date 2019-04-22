@@ -4,7 +4,7 @@
 ;;; something simple to work with.
 ;;;
 ;;; To start emacs with this configuration, run,
-;;;     $ emacs -q --eval '(load-file "~/.emacs.defaults.d/init.el")'
+;;;     $ emacs -q --eval '(load-file "~/.emacs.simple.d/init.el")'
 
 
 (setq user-full-name "Ramana Nagasamudram"
@@ -78,13 +78,17 @@
 (ido-mode 1)
 
 (define-key ido-file-dir-completion-map (kbd "C-l")
-  'ido-delete-backword-word-updir)
+  'ido-delete-backward-word-updir)
 
 					; Text mode
 (add-hook 'text-mode-hook
 	  (lambda ()
 	    (setq fill-column 74)
 	    (turn-on-auto-fill)))
+
+					; Man
+(require 'man)
+(setq Man-notify-method 'pushy)
 
 					; C
 (defun setup-c-mode ()
@@ -98,6 +102,14 @@
   (local-set-key (kbd "M-*") 'pop-tag-mark)
   (local-set-key (kbd "C-c o") 'ff-find-other-file))
 (add-hook 'c-mode-common-hook 'setup-c-mode)
+
+					; sendmail
+(setq mail-user-agent 'gnus-user-agent
+      read-mail-command 'gnus
+      send-mail-function 'message-sent-mail-with-sendmail
+      message-send-mail-function 'message-send-mail-with-sendmail
+      sendmail-program "msmtp"
+      message-sendmail-extra-arguments '("-a" "default"))
 
 					; TRAMP
 (require 'tramp)
