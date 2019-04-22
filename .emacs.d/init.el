@@ -385,6 +385,7 @@ brackets."
 (require 'company)
 (setq company-global-modes '(not shell-mode))
 (global-company-mode 1)
+(setq company-idle-delay 0)
 
 					; Paredit
 (require 'paredit)
@@ -442,19 +443,22 @@ brackets."
 (setq inferior-lisp-program "sbcl")
 
 					; Coq
-(setq proof-auto-raise-buffers nil
-      proof-three-window-enable t
-      proof-output-tooltips t
-      proof-splash-enable nil
-      proof-follow-mode 'followdown)
+(require 'proof-general)
 
 (defun rmn/setup-coq-mode ()
   (tuareg-opam-update-env "default")
-  (setq fill-column 78)
   (turn-on-auto-fill)
-  (setq show-trailing-whitespace t)
   (company-coq-mode)
-  (setq coq-compile-before-require t))
+  (setq fill-column 78
+	show-trailing-whitespace t
+	coq-compile-before-require t
+	company-coq-disabled-features '(prettify-symbols)
+	;; Proof General
+	proof-auto-raise-buffers nil
+	proof-three-window-enable t
+	proof-splash-enable nil
+	proof-follow-mode 'followdown
+	PA-one-command-per-line nil))
 (add-hook 'coq-mode-hook #'rmn/setup-coq-mode)
 
 					; Erlang
