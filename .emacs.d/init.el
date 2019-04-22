@@ -110,7 +110,9 @@
 (setq language-environment "UTF-8")
 (setq reb-re-syntax 'string)
 
-(global-unset-key (kbd "C-z")) ; suspend-frame
+					; `suspend-frame'
+(global-unset-key (kbd "C-z"))
+(global-unset-key (kbd "C-x C-z"))
 
 					; Terminal encoding settings
 (when (eq system-type 'darwin)
@@ -118,7 +120,10 @@
   (set-keyboard-coding-system 'utf-8))
 (prefer-coding-system 'utf-8)
 
-					; Binary movement
+					; Movement
+(defvar rmn/movement-map (make-sparse-keymap)
+  "Keymap for bindings related to movements.")
+
 (let ((beg -1)
       (end -1)
       (prev-mid -1))
@@ -130,7 +135,8 @@
     (if (< beg 0) (setq beg (line-beginning-position)
 			end (point)))
     (setq prev-mid (/ (+ beg end) 2))
-    (goto-char prev-mid))
+    (goto-char prev-mid)
+    (set-transient-map rmn/movement-map))
   (defun forward-binary ()
     (interactive)
     (if (/= prev-mid (point))
@@ -139,10 +145,28 @@
     (if (< end 0) (setq beg (point)
 			end (line-end-position)))
     (setq prev-mid (/ (+ beg end) 2))
-    (goto-char prev-mid)))
+    (goto-char prev-mid)
+    (set-transient-map rmn/movement-map)))
 
-(define-key global-map (kbd "C-c j") 'backward-binary)
-(define-key global-map (kbd "C-c k") 'forward-binary)
+(defun rmn/forward-paragraph ()
+  "`forward-paragraph' but sets `rmn/movement-map' as a
+`transient-map'"
+  (interactive)
+  (forward-paragraph)
+  (set-transient-map rmn/movement-map))
+
+(defun rmn/backward-paragraph ()
+  "`backward-paragraph' but sets `rmn/movement-map' as a
+`transient-map'"
+  (interactive)
+  (backward-paragraph)
+  (set-transient-map rmn/movement-map))
+
+(define-key global-map (kbd "C-c m") rmn/movement-map)
+(define-key rmn/movement-map (kbd "p") 'backward-binary)
+(define-key rmn/movement-map (kbd "n") 'forward-binary)
+(define-key rmn/movement-map (kbd "}") 'rmn/forward-paragraph)
+(define-key rmn/movement-map (kbd "{") 'rmn/backward-paragraph)
 
 					; vim like "Change In"
 (defun seek-backward-to-char (chr)
@@ -355,7 +379,6 @@ brackets."
 					; Man
 (require 'man)
 (setq Man-notify-method 'pushy)
-(define-key global-map (kbd "C-c m") 'man-page-at-point)
 
 					; Imenu
 (define-key global-map (kbd "C-c .") 'imenu-anywhere)
