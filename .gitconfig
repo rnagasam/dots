@@ -8,3 +8,11 @@
 	editor = emacsclient -t
 [commit]
 	gpgsign = true
+[alias]
+	co = checkout
+	br = branch
+	ci = commit
+	st = status
+	unstage = reset HEAD --
+	last = log -p -1 HEAD
+	view = log --all --oneline --decorate --graph
