@@ -182,9 +182,12 @@ bar {
 	}
 }
 
-# Lock, Shutdown, Reboot, ...
+# Wallpaper
+set $Wallpaper /home/rmn/Pictures/wall.png
+exec_always --no-startup-id feh --bg-scale $Wallpaper
 
-set $Locker i3lock -e -i ~/Pictures/wall5.png && sleep 1
+# Lock, Shutdown, Reboot, ...
+set $Locker i3lock -e -i /home/rmn/Pictures/wall.png
 set $mode_system System (l) lock, (e) logout, (s) suspend, (h) hibernate, (r) reboot, (Shit+s) shutdown
 mode "$mode_system" {
      bindsym l exec --no-startup-id $Locker, mode "default"
@@ -200,6 +203,7 @@ mode "$mode_system" {
 }
 
 bindsym $mod+x mode "$mode_system"
+bindsym $mod+Shift+x exec --no-startup-id $Locker
 
 # Handle floating dialogs
 for_window [window_role="pop-up"] floating enable
@@ -211,14 +215,6 @@ bindsym $mod+m bar mode toggle
 # Scratchpad
 bindsym $mod+Shift+minus move scratchpad
 bindsym $mod+minus scratchpad show
-
-# Gaps
-gaps inner 5
-gaps outer 5
-for_window [class="^.*"] border pixel 4
-
-smart_gaps on
-smart_borders no_gaps
 
 # Jump to urgent window
 bindsym $mod+y [urgent=latest] focus
@@ -232,12 +228,17 @@ bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume 0 +5%
 bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume 0 -5%
 bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute 0 toggle
 
-# Wallpaper
-exec --no-startup-id feh --bg-scale ~/Pictures/wall5.png
-
 # Place terminal in scratchpad on startup
 for_window [instance="__scratchpad"] move scratchpad
 exec --no-startup-id i3-sensible-terminal -name __scratchpad
 
 # Emacsclient
 bindsym $mod+c exec --no-startup-id emacsclient -c
+
+# Alternate split layout
+for_window [class=".*"] split toggle
+
+# Floating windows
+for_window [class=Nm-connection-editor] floating enable
+for_window [class=Pcmanfm] floating enable
+for_window [class=Arandr] floating enable
