@@ -104,7 +104,6 @@
 (global-subword-mode 1)
 (column-number-mode 1)
 (size-indication-mode 1)
-(fringe-mode '(1 . 1))
 (global-auto-revert-mode 1)
 
 (setq language-environment "UTF-8")
@@ -249,8 +248,10 @@ brackets."
 (define-key global-map (kbd "<f8>") 'winner-redo)
 
 (require 'ace-window)
+(ace-window-display-mode 1)
 (define-key global-map (kbd "C-'") 'ace-window)
-(setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+(setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)
+      aw-scope 'frame)
 
 					; Finding files
 (require 'ffap)
@@ -422,6 +423,10 @@ brackets."
 (require 'yasnippet)
 (yas-global-mode 1)
 
+					; GDB
+(gdb-many-windows 1)
+(setq gdb-show-main t)
+
 					; AucTeX
 (setq TeX-parse-self t)
 (setq TeX-auto-save t)
@@ -468,11 +473,11 @@ brackets."
 (defun rmn/setup-coq-mode ()
   (tuareg-opam-update-env "default")
   (turn-on-auto-fill)
+  (setq company-coq-disabled-features '(prettify-symbols))
   (company-coq-mode)
   (setq fill-column 78
 	show-trailing-whitespace t
 	coq-compile-before-require t
-	company-coq-disabled-features '(prettify-symbols)
 	;; Proof General
 	proof-auto-raise-buffers nil
 	proof-three-window-enable t
