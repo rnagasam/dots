@@ -238,6 +238,10 @@ brackets."
 (add-to-list 'display-buffer-alist
 	     '("^\\*shell\\*$" . (display-buffer-same-window)))
 
+					; Emacs Pager
+(require 'emacs-pager)
+(add-to-list 'auto-mode-alist '("\\.emacs-pager$" . emacs-pager-mode))
+
 					; Exec path from shell
 (when (eq system-type 'darwin)
   (exec-path-from-shell-initialize))
