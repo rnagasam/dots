@@ -119,7 +119,9 @@
   (set-keyboard-coding-system 'utf-8))
 (prefer-coding-system 'utf-8)
 
-					; Movement
+					; Movement & Editing
+(define-key global-map (kbd "M-z") 'zap-up-to-char)
+
 (let ((beg -1)
       (end -1)
       (prev-mid -1))
@@ -238,10 +240,6 @@ brackets."
 (add-to-list 'display-buffer-alist
 	     '("^\\*shell\\*$" . (display-buffer-same-window)))
 
-					; Emacs Pager
-(require 'emacs-pager)
-(add-to-list 'auto-mode-alist '("\\.emacs-pager$" . emacs-pager-mode))
-
 					; Exec path from shell
 (when (eq system-type 'darwin)
   (exec-path-from-shell-initialize))
@@ -342,7 +340,7 @@ brackets."
   (helm-mode 1))
 
 					; Handle buffers
-(define-key global-map (kbd "C-x C-b") 'ibuffer)
+(define-key global-map (kbd "C-x C-b") 'bs-show)
 
 					; Protect buffers from being killed
 (defun rmn/protect-buffers ()
