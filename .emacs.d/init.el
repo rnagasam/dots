@@ -426,8 +426,9 @@ brackets."
 (yas-global-mode 1)
 
 					; GDB
-(gdb-many-windows 1)
+(require 'gud)
 (setq gdb-show-main t)
+(add-hook 'gud-mode-hook #'gdb-many-windows)
 
 					; AucTeX
 (setq TeX-parse-self t)
@@ -436,6 +437,13 @@ brackets."
 (add-hook 'LaTeX-mode-hook 'visual-line-mode)
 (add-hook 'LaTeX-mode-hook 'flyspell-mode)
 (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
+
+					; LSP
+(require 'lsp)
+(add-hook 'python-mode-hook #'lsp)
+
+(require 'company-lsp)
+(push 'company-lsp company-backends)
 
 					; ATS
 (when (file-exists-p (concat (getenv "HOME") "/ats2"))
@@ -563,7 +571,8 @@ brackets."
       org-agenda-start-on-weekday nil
       org-agenda-skip-deadline-if-done t
       org-agenda-skip-scheduled-if-done t
-      org-use-fast-todo-selection t)
+      org-use-fast-todo-selection t
+      org-use-speed-commands t)
 
 (setq org-todo-keywords
       '((sequence "TODO(t)" "NEXT(t)" "WAITING(w@/!)" "HOLD(h@/!)"
