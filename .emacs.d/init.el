@@ -109,6 +109,8 @@
 (setq language-environment "UTF-8")
 (setq reb-re-syntax 'string)
 
+(add-hook 'before-save-hook 'whitespace-cleanup)
+
 					; `suspend-frame'
 (global-unset-key (kbd "C-z"))
 (global-unset-key (kbd "C-x C-z"))
@@ -235,6 +237,7 @@ brackets."
 					; Shell
 (require 'shell)
 (define-key shell-mode-map (kbd "SPC") 'comint-magic-space)
+(add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 
 					; "M-x shell RET" in current buffer
 (add-to-list 'display-buffer-alist
@@ -464,7 +467,7 @@ brackets."
 (defun rmn/setup-c-mode ()
   (setq c-default-style "bsd"
 	c-basic-offset 4
- 	tab-width 4
+	tab-width 4
 	indent-tabs-mode t
 	show-trailing-whitespace t)
   ; (display-line-numbers-mode t)
