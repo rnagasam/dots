@@ -111,6 +111,11 @@
 
 (add-hook 'before-save-hook 'whitespace-cleanup)
 
+					; Theme
+(if (display-graphic-p)
+    (load-theme 'bharadwaj)
+  (load-theme 'termbright))
+
 					; Display
 (setq display-buffer-reuse-frames t)
 (setq pop-up-windows nil)
@@ -275,6 +280,7 @@ brackets."
 (require 'ace-window)
 (ace-window-display-mode 1)
 (define-key global-map (kbd "C-'") 'ace-window)
+(define-key global-map (kbd "C-o") 'ace-window)	; better in terminals
 (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)
       aw-scope 'frame)
 
