@@ -111,6 +111,19 @@
 
 (add-hook 'before-save-hook 'whitespace-cleanup)
 
+					; Display
+(setq display-buffer-reuse-frames t)
+(setq pop-up-windows nil)
+(setq even-window-heights nil)
+
+(setq display-buffer-alist
+      '(("\\*compilation\\*"
+	 (display-buffer-reuse-window display-buffer-same-window))
+	;; default
+	(".*"
+	 (display-buffer-same-window))))
+
+
 					; `suspend-frame'
 (global-unset-key (kbd "C-z"))
 (global-unset-key (kbd "C-x C-z"))
@@ -135,8 +148,7 @@
     (if (< beg 0) (setq beg (line-beginning-position)
 			end (point)))
     (setq prev-mid (/ (+ beg end) 2))
-    (goto-char prev-mid)
-    (set-transient-map rmn/movement-map))
+    (goto-char prev-mid))
   (defun forward-binary ()
     (interactive)
     (if (/= prev-mid (point))
@@ -145,8 +157,7 @@
     (if (< end 0) (setq beg (point)
 			end (line-end-position)))
     (setq prev-mid (/ (+ beg end) 2))
-    (goto-char prev-mid)
-    (set-transient-map rmn/movement-map)))
+    (goto-char prev-mid)))
 
 (defvar rmn/movement-map (make-sparse-keymap)
   "Keymap for bindings related to movements.")
@@ -162,18 +173,17 @@
 
 (define-key global-map (kbd "C-c m") rmn/movement-map)
 
-					; Repeatable keybindings
-(rmn/movement-define-key (kbd "n") #'forward-binary)
-(rmn/movement-define-key (kbd "p") #'backward-binary)
-(rmn/movement-define-key (kbd "}") #'forward-paragraph)
-(rmn/movement-define-key (kbd "{") #'backward-paragraph)
-
-					; vim like "Change In"
 (defun seek-backward-to-char (chr)
   "Seek backwards to a character"
   (interactive "cSeek back to char: ")
   (while (not (= (char-after) chr))
     (forward-char -1)))
+
+(defun seek-forward-to-char (char)
+  "Seek forwards to a character"
+  (interactive "cSeek to char: ")
+  (while (not (= (char-after) char))
+    (forward-char 1)))
 
 (defun delete-between-pair (char)
   "Delete in between the given pair.  Handles opening and closing
@@ -195,7 +205,17 @@ brackets."
     (insert endch)
     (forward-char -1)))
 
-(define-key global-map (kbd "C-c i") 'delete-between-pair)
+(define-key rmn/movement-map (kbd "i") 'delete-between-pair)
+(define-key rmn/movement-map (kbd "z") 'zap-up-to-char)
+(define-key rmn/movement-map (kbd "F") 'seek-backward-to-char)
+(define-key rmn/movement-map (kbd "f") 'seek-forward-to-char)
+
+(rmn/movement-define-key (kbd "n") 'forward-binary)
+(rmn/movement-define-key (kbd "p") 'backward-binary)
+(rmn/movement-define-key (kbd "}") 'forward-paragraph)
+(rmn/movement-define-key (kbd "{") 'backward-paragraph)
+(rmn/movement-define-key (kbd "k") 'kill-whole-line)
+
 
 					; Crux
 (require 'crux)
@@ -269,21 +289,22 @@ brackets."
 					; Ido
 (when rmn/use-ido
   (require 'ido)
-  ; (require 'ido-vertical-mode)
+  ;; (require 'ido-vertical-mode)
   (setq ido-enable-flex-matching t
 	ido-use-virtual-buffers t
 	ido-everywhere t
 	ido-use-filename-at-point 'guess
 	ido-use-url-at-point t
-	;; ido-enable-tramp-completion t ; can make performance slow
 	ido-case-fold t
-	ido-enable-regexp t)
+	ido-enable-regexp t
+	ido-max-window-height 1)
   (ido-mode 1)
-  ; (ido-vertical-mode 1)
-  ; (setq ido-vertical-define-keys 'C-n-and-C-p-only)
+  ;; (ido-vertical-mode 1)
+  ;; (setq ido-vertical-define-keys 'C-n-and-C-p-only)
 
   (define-key ido-file-dir-completion-map (kbd "C-l")
     'ido-delete-backward-word-updir)
+
 					; M-x -- smex
   (require 'smex)
   (setq smex-save-file (expand-file-name ".smex-items" user-emacs-directory))
@@ -307,7 +328,7 @@ brackets."
 (when rmn/use-helm
   (require 'helm)
   (require 'helm-config)
- (global-set-key (kbd "C-c h") 'helm-command-prefix)
+  (global-set-key (kbd "C-c h") 'helm-command-prefix)
   (global-unset-key (kbd "C-x c"))
   ;; rebind tab to run persistent action
   (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
@@ -470,7 +491,7 @@ brackets."
 	tab-width 4
 	indent-tabs-mode t
 	show-trailing-whitespace t)
-  ; (display-line-numbers-mode t)
+					; (display-line-numbers-mode t)
   (electric-pair-mode t)
   (local-set-key (kbd "M-*") 'pop-tag-mark)
   (local-set-key (kbd "C-c o") 'ff-find-other-file))
@@ -579,7 +600,7 @@ brackets."
 
 (setq org-todo-keywords
       '((sequence "TODO(t)" "NEXT(t)" "WAITING(w@/!)" "HOLD(h@/!)"
-		  "MEETING(m)" "PHONE(p)" "|" "DONE(d)")))
+		  "MEETING(m)" "PHONE(p)" "|" "DONE(d)" "CANCELLED(c@/!)")))
 
 (setq org-capture-templates
       '(("t" "Todo" entry (file+headline "~/.org/tasks.org" "Tasks")
@@ -608,6 +629,7 @@ brackets."
  '((python . t)
    (emacs-lisp . t)
    (scheme . t)
+   (shell . t)
    (ditaa . t)
    (dot . t)
    (java . t)
