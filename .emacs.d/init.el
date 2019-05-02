@@ -586,7 +586,7 @@ will kill the word to the right of point."
       org-enforce-todo-dependencies t
       org-enforce-todo-checkbox-dependencies t)
 
-(setq org-agenda-files '("~/.org/tasks.org")
+(setq org-agenda-files '("~/.org")
       org-agenda-window-setup 'current-window
       org-agenda-ndays 7
       org-agenda-show-all-dates t
@@ -600,15 +600,25 @@ will kill the word to the right of point."
       '((sequence "TODO(t)" "NEXT(t)" "WAITING(w@/!)" "HOLD(h@/!)"
 		  "MEETING(m)" "PHONE(p)" "|" "DONE(d)" "CANCELLED(c@/!)")))
 
+(setq org-default-notes-file "~/.org/refile.org")
+
 (setq org-capture-templates
-      '(("t" "Todo" entry (file+headline "~/.org/tasks.org" "Tasks")
+      '(("t" "Todo" entry (file "~/.org/refile.org")
 	 "** TODO %?\n%i   %u" :empty-lines 1)
-	("T" "Todo with link" entry (file+headline "~/.org/tasks.org" "Tasks")
+	("T" "Todo with link" entry (file "~/.org/refile.org")
 	 "** TODO %?\n%i   %u\n   %A" :empty-lines 1)
-	("m" "Meeting" entry (file+headline "~/.org/tasks.org" "Events")
+	("m" "Meeting" entry (file "~/.org/refile.org")
 	 "** MEETING %?\n   SCHEDULED: %^T" :empty-lines 1)
-	("p" "Phone call" entry (file+headline "~/.org/tasks.org" "Events")
+	("p" "Phone call" entry (file "~/.org/refile.org")
 	 "** PHONE %?\n   SCHEDULED: %^T" :empty-lines 1)))
+
+(setq org-refile-targets '((nil :maxlevel . 9)
+			   (org-agenda-files :maxlevel . 9))
+      org-refile-use-outline-path t
+      org-outline-path-complete-in-steps nil
+      org-refile-allow-creating-parent-nodes 'confirm)
+
+(setq org-completion-use-ido t)
 
 (define-key org-mode-map (kbd "C-'") nil) ; originally `org-cycle-agenda-files'
 (define-key global-map (kbd "C-c l") 'org-store-link)
