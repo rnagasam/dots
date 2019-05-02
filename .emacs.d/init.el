@@ -111,24 +111,6 @@
 
 (add-hook 'before-save-hook 'whitespace-cleanup)
 
-					; Theme
-(if (display-graphic-p)
-    (load-theme 'bharadwaj)
-  (load-theme 'termbright))
-
-					; Display
-(setq display-buffer-reuse-frames t)
-(setq pop-up-windows nil)
-(setq even-window-heights nil)
-
-(setq display-buffer-alist
-      '(("\\*compilation\\*"
-	 (display-buffer-reuse-window display-buffer-same-window))
-	;; default
-	(".*"
-	 (display-buffer-same-window))))
-
-
 					; `suspend-frame'
 (global-unset-key (kbd "C-z"))
 (global-unset-key (kbd "C-x C-z"))
@@ -210,7 +192,17 @@ brackets."
     (insert endch)
     (forward-char -1)))
 
+(defun rmn/kill-word ()
+  "Kill the word point is at.  If point is at a word boundary, this
+will kill the word to the right of point."
+  (interactive)
+  (if (looking-at "\\b")
+      (kill-word 1)
+    (backward-word)
+    (kill-word 1)))
+
 (define-key rmn/movement-map (kbd "i") 'delete-between-pair)
+(define-key rmn/movement-map (kbd "w") 'rmn/kill-word)
 (define-key rmn/movement-map (kbd "z") 'zap-up-to-char)
 (define-key rmn/movement-map (kbd "F") 'seek-backward-to-char)
 (define-key rmn/movement-map (kbd "f") 'seek-forward-to-char)
@@ -280,7 +272,7 @@ brackets."
 (require 'ace-window)
 (ace-window-display-mode 1)
 (define-key global-map (kbd "C-'") 'ace-window)
-(define-key global-map (kbd "C-o") 'ace-window)	; better in terminals
+(define-key global-map (kbd "M-'") 'ace-window)	; better in terminals
 (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)
       aw-scope 'frame)
 
