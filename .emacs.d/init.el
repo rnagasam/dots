@@ -260,6 +260,12 @@ will kill the word to the right of point."
 (add-to-list 'display-buffer-alist
 	     '("^\\*shell\\*$" . (display-buffer-same-window)))
 
+					; Eshell
+;; `clear' doesn't remove scrollback by default
+(defun eshell/clear ()
+  (interactive)
+  (eshell/clear-scrollback))
+
 					; Exec path from shell
 (when (eq system-type 'darwin)
   (exec-path-from-shell-initialize))
@@ -459,13 +465,6 @@ will kill the word to the right of point."
 (add-hook 'LaTeX-mode-hook 'visual-line-mode)
 (add-hook 'LaTeX-mode-hook 'flyspell-mode)
 (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
-
-					; LSP
-(require 'lsp)
-(add-hook 'python-mode-hook #'lsp)
-
-(require 'company-lsp)
-(push 'company-lsp company-backends)
 
 					; ATS
 (when (file-exists-p (concat (getenv "HOME") "/ats2"))
