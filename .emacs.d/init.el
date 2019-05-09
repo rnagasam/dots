@@ -38,6 +38,7 @@
 	color-theme-modern
 	company
 	company-coq
+	company-ghc
 	crux
 	docker
 	dockerfile-mode
@@ -524,9 +525,11 @@ will kill the word to the right of point."
 					; Haskell
 (require 'haskell-mode)
 (defun rmn/setup-haskell-mode ()
-  (setq indent-tabs-mode nil)
+  (setq indent-tabs-mode nil
+	fill-column 78)
   (interactive-haskell-mode 1))
 (add-hook 'haskell-mode-hook #'rmn/setup-haskell-mode)
+(add-to-list 'company-backends 'company-ghc)
 
 					; OCaml
 (require 'tuareg)
@@ -616,6 +619,10 @@ will kill the word to the right of point."
       org-refile-use-outline-path t
       org-outline-path-complete-in-steps nil
       org-refile-allow-creating-parent-nodes 'confirm)
+
+(advice-add 'org-refile :after
+	    (lambda (&rest _)
+	      (org-save-all-org-buffers)))
 
 (setq org-completion-use-ido t)
 
