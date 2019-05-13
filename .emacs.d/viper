@@ -1,0 +1,20 @@
+(setq viper-inhibit-startup-message t
+      viper-expert-level 5)
+
+(define-key viper-insert-basic-map (kbd "C-[") 'viper-intercept-ESC-key)
+(define-key viper-vi-basic-map (kbd "C-e") nil)
+(define-key viper-vi-basic-map (kbd "C-y") nil)
+
+(setq-default viper-auto-indent t)
+
+(setq viper-ESC-moves-cursor-back nil
+      viper-want-ctl-h-help t
+      viper-want-emacs-keys-in-insert t
+      viper-want-emacs-keys-in-vi t
+      viper-electric-mode t
+      viper-case-fold-search t
+      viper-re-search t
+      viper-re-query-replace t
+      viper-always t)
+
+(viper-set-syntax-preference nil "emacs")

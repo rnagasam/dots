@@ -112,6 +112,13 @@
 
 (add-hook 'before-save-hook 'whitespace-cleanup)
 
+					; Viper
+(defvar rmn/use-viper t)
+(when rmn/use-viper
+  (setq viper-custom-file-name "~/.emacs.d/viper")
+  (setq viper-mode t)
+  (require 'viper))
+
 					; `suspend-frame'
 (global-unset-key (kbd "C-z"))
 (global-unset-key (kbd "C-x C-z"))
@@ -224,7 +231,7 @@ will kill the word to the right of point."
   'crux-indent-rigidly-and-copy-to-clipboard)
 
 					; EXWM
-(setq rmn/use-exwm nil)
+(defvar rmn/use-exwm nil)
 
 (when rmn/use-exwm
   (require 'exwm)
@@ -288,8 +295,8 @@ will kill the word to the right of point."
 (ffap-bindings)
 (setq ffap-require-prefix t)
 
-(setq rmn/use-ido t)
-(setq rmn/use-helm (not rmn/use-ido))
+(defvar rmn/use-ido t)
+(defvar rmn/use-helm (not rmn/use-ido))
 
 					; Ido
 (when rmn/use-ido
