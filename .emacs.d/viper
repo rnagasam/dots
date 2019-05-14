@@ -2,19 +2,39 @@
       viper-expert-level 5)
 
 (define-key viper-insert-basic-map (kbd "C-[") 'viper-intercept-ESC-key)
+(define-key viper-insert-global-user-map (kbd "C-[") 'viper-intercept-ESC-key)
 (define-key viper-vi-basic-map (kbd "C-e") nil)
 (define-key viper-vi-basic-map (kbd "C-y") nil)
 
-(setq-default viper-auto-indent t)
+(setq-default viper-auto-indent t
+	      viper-electric-mode nil
+	      viper-ESC-moves-cursor-back nil
+	      viper-ex-style-editing nil)
 
-(setq viper-ESC-moves-cursor-back nil
-      viper-want-ctl-h-help t
+(setq viper-want-ctl-h-help t
       viper-want-emacs-keys-in-insert t
       viper-want-emacs-keys-in-vi t
-      viper-electric-mode t
+      viper-vi-style-in-minibuffer nil
       viper-case-fold-search t
       viper-re-search t
       viper-re-query-replace t
       viper-always t)
 
 (viper-set-syntax-preference nil "emacs")
+
+					; Dired
+(eval-after-load 'dired
+  '(progn
+     (define-key dired-mode-map "v" 'dired-x-find-file)
+     (define-key dired-mode-map "V" 'dired-view-file)
+     (define-key dired-mode-map "j" 'dired-next-line)
+     (define-key dired-mode-map "J" 'dired-goto-file)
+     (define-key dired-mode-map "k" 'dired-previous-line)
+     (define-key dired-mode-map "K" 'dired-do-kill-lines)))
+
+					; Windmove
+(require 'windmove)
+(define-key viper-vi-basic-map (kbd "C-w h") 'windmove-left)
+(define-key viper-vi-basic-map (kbd "C-w j") 'windmove-down)
+(define-key viper-vi-basic-map (kbd "C-w k") 'windmove-up)
+(define-key viper-vi-basic-map (kbd "C-w l") 'windmove-right)
