@@ -48,6 +48,7 @@
 	helm
 	ido-vertical-mode
 	imenu-anywhere
+	intero
 	magit
 	paredit
 	pdf-tools
@@ -113,7 +114,7 @@
 (add-hook 'before-save-hook 'whitespace-cleanup)
 
 					; Viper
-(defvar rmn/use-viper t)
+(defvar rmn/use-viper nil)
 (when rmn/use-viper
   (setq viper-custom-file-name "~/.emacs.d/viper")
   (setq viper-mode t)
@@ -474,6 +475,18 @@ will kill the word to the right of point."
 (add-hook 'LaTeX-mode-hook 'flyspell-mode)
 (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
 
+(defun rmn/auctex-preview-after-save ()
+  "Run `preview-buffer' after saving a LaTeX file if any part of the
+buffer was previewed before."
+  (interactive)
+  (add-hook 'after-save-hook
+	    (lambda ()
+	      (interactive)
+	      (when preview-last-location
+		(preview-buffer))) nil t))
+
+(add-hook 'LaTeX-mode-hook 'rmn/auctex-preview-after-save)
+
 					; ATS
 (when (file-exists-p (concat (getenv "HOME") "/ats2"))
   (setenv "PATSHOME" (concat (getenv "HOME") "/ats2"))
@@ -512,7 +525,7 @@ will kill the word to the right of point."
 (defun rmn/setup-coq-mode ()
   (tuareg-opam-update-env "default")
   (turn-on-auto-fill)
-  (setq company-coq-disabled-features '(prettify-symbols))
+  ;; (setq company-coq-disabled-features '(prettify-symbols))
   (company-coq-mode)
   (setq fill-column 78
 	show-trailing-whitespace t
@@ -534,7 +547,9 @@ will kill the word to the right of point."
 (defun rmn/setup-haskell-mode ()
   (setq indent-tabs-mode nil
 	fill-column 78)
-  (interactive-haskell-mode 1))
+  ;; (interactive-haskell-mode 1)
+  )
+(intero-global-mode 1)
 (add-hook 'haskell-mode-hook #'rmn/setup-haskell-mode)
 (add-to-list 'company-backends 'company-ghc)
 
