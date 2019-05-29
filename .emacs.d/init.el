@@ -100,8 +100,9 @@
 
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
-(when (not (eq system-type 'darwin))
-  (menu-bar-mode -1))
+(menu-bar-mode -1)
+;; (when (not (eq system-type 'darwin))
+;;   (menu-bar-mode -1))
 
 (show-paren-mode 1)
 (global-subword-mode 1)
@@ -113,6 +114,14 @@
 (setq reb-re-syntax 'string)
 
 (add-hook 'before-save-hook 'whitespace-cleanup)
+
+					; ITerm2 mouse support
+(unless window-system
+  (add-hook 'after-init-hook (lambda () (load-theme 'termbright)) t)
+  (require 'mouse)
+  (xterm-mouse-mode t)
+  (defun track-mouse (e))
+  (setq mouse-sel-mode t))
 
 					; Viper
 (defvar rmn/use-viper nil)
@@ -223,6 +232,11 @@ will kill the word to the right of point."
 (rmn/movement-define-key (kbd "{") 'backward-paragraph)
 (rmn/movement-define-key (kbd "k") 'kill-whole-line)
 
+					; Hyperbole
+(require 'hyperbole)
+(global-set-key (kbd "<S-mouse-1>") 'action-key)
+(setq hycontrol-help-flag nil)
+
 
 					; Crux
 (require 'crux)
@@ -280,6 +294,9 @@ will kill the word to the right of point."
 (when (eq system-type 'darwin)
   (exec-path-from-shell-initialize))
 
+					; Handling frames
+(define-key global-map (kbd "C-c o") 'other-frame)
+
 					; Handling windows
 (winner-mode 1)
 (define-key global-map (kbd "<f7>") 'winner-undo)
@@ -297,8 +314,8 @@ will kill the word to the right of point."
 (ffap-bindings)
 (setq ffap-require-prefix t)
 
-(defvar rmn/use-ido t)
-(defvar rmn/use-helm (not rmn/use-ido))
+(defvar rmn/use-ido nil)
+(defvar rmn/use-helm nil)
 
 					; Ido
 (when rmn/use-ido
@@ -513,7 +530,7 @@ buffer was previewed before."
 					; (display-line-numbers-mode t)
   (electric-pair-mode t)
   (local-set-key (kbd "M-*") 'pop-tag-mark)
-  (local-set-key (kbd "C-c o") 'ff-find-other-file))
+  (local-set-key (kbd "C-c f") 'ff-find-other-file))
 (add-hook 'c-mode-common-hook #'rmn/setup-c-mode)
 
 					; Common Lisp
