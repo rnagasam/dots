@@ -56,6 +56,7 @@
 	sicp
 	slime
 	smex
+	sml-mode
 	tuareg
 	yaml-mode
 	yasnippet-snippets))
@@ -538,8 +539,8 @@ buffer was previewed before."
 (setq inferior-lisp-program "sbcl")
 
 					; Coq
+(setq proof-splash-enable nil)
 (require 'proof-general)
-
 (defun rmn/setup-coq-mode ()
   (tuareg-opam-update-env "default")
   (turn-on-auto-fill)
@@ -551,7 +552,6 @@ buffer was previewed before."
 	;; Proof General
 	proof-auto-raise-buffers nil
 	proof-three-window-enable t
-	proof-splash-enable nil
 	proof-follow-mode 'followdown
 	PA-one-command-per-line nil))
 (add-hook 'coq-mode-hook #'rmn/setup-coq-mode)
@@ -570,6 +570,21 @@ buffer was previewed before."
 (intero-global-mode 1)
 (add-hook 'haskell-mode-hook #'rmn/setup-haskell-mode)
 (add-to-list 'company-backends 'company-ghc)
+
+					; Standard ML
+(require 'sml-mode)
+
+(defun rmn/setup-sml-mode ()
+  (setq sml-program-name "sml")
+  (setq sml-indent-level 2)
+  (setq indent-tabs-mode nil))
+(add-hook 'sml-mode-hook #'rmn/setup-sml-mode)
+
+(defun rmn/setup-inferior-sml-mode ()
+  (add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
+  (setq comint-scroll-show-maximum-output t)
+  (setq comint-input-autoexpand nil))
+(add-hook 'inferior-sml-mode-hook #'rmn/setup-inferior-sml-mode)
 
 					; OCaml
 (require 'tuareg)
