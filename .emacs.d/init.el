@@ -97,13 +97,13 @@
       visual-bell 1
       ring-bell-function 'ignore)
 
-(setq transient-mark-mode nil)
+;; (setq transient-mark-mode nil)
 
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
-(menu-bar-mode -1)
-;; (when (not (eq system-type 'darwin))
-;;   (menu-bar-mode -1))
+;; (menu-bar-mode -1)
+(when (not (eq system-type 'darwin))
+  (menu-bar-mode -1))
 
 (show-paren-mode 1)
 (global-subword-mode 1)
@@ -123,6 +123,15 @@
   (xterm-mouse-mode t)
   (defun track-mouse (e))
   (setq mouse-sel-mode t))
+
+					; Theme
+(defun rmn/toggle-theme ()
+  (interactive)
+  (let ((togls '(("black" . "white") ("white" . "black")))
+	(fg (face-attribute 'default :foreground))
+	(bg (face-attribute 'default :background)))
+    (set-foreground-color (cdr (assoc fg togls)))
+    (set-background-color (cdr (assoc bg togls)))))
 
 					; Viper
 (defvar rmn/use-viper nil)
@@ -585,6 +594,10 @@ buffer was previewed before."
   (setq comint-scroll-show-maximum-output t)
   (setq comint-input-autoexpand nil))
 (add-hook 'inferior-sml-mode-hook #'rmn/setup-inferior-sml-mode)
+
+					; Twelf
+(setq twelf-root "/Users/rnagasam/.smackage/lib/twelf/v1.7.1/")
+(load (concat twelf-root "emacs/twelf-init.el"))
 
 					; OCaml
 (require 'tuareg)
