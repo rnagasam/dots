@@ -116,6 +116,15 @@
 
 (add-hook 'before-save-hook 'whitespace-cleanup)
 
+;; remove all minor modes from modeline
+(setq mode-line-modes
+      (mapcar (lambda (elem)
+		(pcase elem
+		  (`(:propertize (,_ minor-mode-alist . ,_) . ,_)
+		   "")
+		  (t elem)))
+	      mode-line-modes))
+
 					; ITerm2 mouse support
 (unless window-system
   (add-hook 'after-init-hook (lambda () (load-theme 'termbright)) t)
@@ -128,8 +137,8 @@
 (defun rmn/toggle-theme ()
   (interactive)
   (let ((togls '(("black" . "white") ("white" . "black")))
-	(fg (face-attribute 'default :foreground))
-	(bg (face-attribute 'default :background)))
+	(fg (downcase (face-attribute 'default :foreground)))
+	(bg (downcase (face-attribute 'default :background))))
     (set-foreground-color (cdr (assoc fg togls)))
     (set-background-color (cdr (assoc bg togls)))))
 
@@ -553,7 +562,7 @@ buffer was previewed before."
 (defun rmn/setup-coq-mode ()
   (tuareg-opam-update-env "default")
   (turn-on-auto-fill)
-  ;; (setq company-coq-disabled-features '(prettify-symbols))
+  (setq company-coq-disabled-features '(spinner prettify-symbols))
   (company-coq-mode)
   (setq fill-column 78
 	show-trailing-whitespace t
