@@ -1,78 +1,62 @@
 ;;; -*- lexical-binding: t -*-
 
+;;;* User Details
 (setq user-full-name "Ramana Nagasamudram"
       user-mail-address "rnagasam@stevens.edu")
 
-					; GC options
+;;;* Initialization -- Garbage Collection
 (let ((initial-gc-threshold 800000)
       (startup-gc-threshold (* 20 1024 1024)))
   (setq gc-cons-threshold startup-gc-threshold)
   (add-hook 'after-init-hook
-	    (lambda () (setq gc-cons-threshold initial-gc-threshold))))
+            (lambda () (setq gc-cons-threshold initial-gc-threshold))))
 (add-hook 'focus-out-hook 'garbage-collect)
 
-					; Custom and load path
+;;;* Emacs directory and Custom
+;; A simple way to experiment with multiple configs is to change
+;; `user-emacs-directory' to point to a location with an alternate
+;; `init.el'.  Of course, additional files might have to be copied.
 (if (not (boundp 'user-emacs-directory))
     (setq user-emacs-directory "~/.emacs.d/"))
+
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (add-hook 'after-init-hook
 	  (lambda ()
 	    (when (file-exists-p custom-file)
 	      (load custom-file))))
 
-(add-to-list 'load-path (expand-file-name "site-lisp/" user-emacs-directory))
+;;;* Packages
+(let ((default-directory "~/.emacs.d/site-lisp/"))
+  (normal-top-level-add-to-load-path '("."))
+  (normal-top-level-add-subdirs-to-load-path))
 
-					; Packages
 (require 'package)
-(let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
-		    (not (gnutls-available-p))))
-       (proto (if no-ssl "http" "https")))
-  (add-to-list 'package-archives
-	       (cons "melpa" (concat proto "://melpa.org/packages/")) t))
+
+;; [08/12/2019] "incomprehensible buffer" error with `elpa' is avoided
+;; by switching to `http' from `https'.
+(setq package-archives
+      '(("melpa" . "http://melpa.milkbox.net/packages/")
+        ("gnu" . "http://elpa.gnu.org/packages/")))
+
 (package-initialize)
 
-(setq rmn/package-list
-      '(ace-window
-	auctex
-	bbdb
-	color-theme-modern
-	company
-	company-coq
-	company-ghc
-	crux
-	docker
-	dockerfile-mode
-	elpy
-	erlang
-	haskell-mode
-	helm
-	ido-vertical-mode
-	imenu-anywhere
-	intero
-	magit
-	paredit
-	pdf-tools
-	proof-general
-	sicp
-	slime
-	smex
-	sml-mode
-	tuareg
-	yaml-mode
-	yasnippet-snippets))
+;;;* Aquamacs
+;; [08/12/2019] Not used anymore.
+(when (featurep 'aquamacs)
+  (one-buffer-one-frame-mode -1)
+  (setq special-display-regexps nil)
+  (setq aquamacs-scratch-file nil
+        initial-major-mode 'emacs-lisp-mode)
+  (setq ns-use-mac-modifier-symbols nil
+        select-enable-clipboard t))
 
-(unless package-archive-contents
-  (package-refresh-contents))
-
-(dolist (package rmn/package-list)
-  (unless (package-installed-p package)
-    (package-install package)))
-
-
-					; Server
+;;;* Emacs Server
+;; [08/12/2019] Some of this might not be required, considering that I
+;; usually start emacs by `emacs --daemon'.
+;; Take a look at https://www.emacswiki.org/emacs/EmacsAsDaemon.
 (require 'server)
-(if (not (server-running-p))
-    (server-start))
+(when (not (server-running-p))
+  (server-start))
 
 (defun server-shutdown ()
   "Save buffers, Quit, and Shutdown (kill) server"
@@ -80,411 +64,214 @@
   (save-some-buffers)
   (kill-emacs))
 
-					; Windows
-(defun rmn/load-windows ()
-  (let ((cf (expand-file-name "init-windows.el"
-			      user-emacs-directory)))
-    (if (file-exists-p cf)
-	(load cf))))
-
-(when (eq system-type 'windows-nt)
-  (add-hook 'after-init-hook #'rmn/load-windows))
-
-					; General
+;;;* Interface and General settings
 (defalias 'yes-or-no-p 'y-or-n-p)
 (setq inhibit-startup-screen t
       inhibit-splash-screen t
       visual-bell 1
       ring-bell-function 'ignore)
 
-;; (setq transient-mark-mode nil)
-
-(scroll-bar-mode -1)
+(if (fboundp 'scroll-bar-mode)
+    (scroll-bar-mode -1))
 (tool-bar-mode -1)
-;; (menu-bar-mode -1)
-(when (not (eq system-type 'darwin))
-  (menu-bar-mode -1))
 
 (show-paren-mode 1)
 (global-subword-mode 1)
 (column-number-mode 1)
-(size-indication-mode 1)
 (global-auto-revert-mode 1)
+(delete-selection-mode 1)
 
-(setq language-environment "UTF-8")
-(setq reb-re-syntax 'string)
+(setq enable-recursive-minibuffers nil)
 
-(add-hook 'before-save-hook 'whitespace-cleanup)
+(global-unset-key (kbd "C-z"))
+(global-unset-key (kbd "C-x C-z"))
 
-;; remove all minor modes from modeline
+;; [08/17/2019]
+;; Snippet from https://github.com/technomancy/better-defaults
+(setq save-interprogram-paste-before-kill t
+      apropos-do-all t
+      load-prefer-newer t)
+
+;; [08/21/2019] Use emacs-mac port by Yamamoto Mitsuharu
+;; Additionally, {M-x customize-group RET mac RET}
+(when (eq system-type 'darwin)
+  (setq mac-option-modifier 'meta
+        mac-command-modifier 'super
+        ;; ``Cmd+Left mouse'' as mouse-2
+        mac-emulate-three-button-mouse 'reverse)
+  (define-key global-map (kbd "s-n") 'make-frame-command)
+  (define-key global-map (kbd "s-w") 'delete-frame)
+  (define-key global-map (kbd "<s-right>") 'other-frame)
+  (define-key global-map (kbd "<s-left>") (lambda ()
+                                            (interactive)
+                                            (other-frame -1))))
+
+;;;** Indentation (prefer spaces over tabs)
+(setq-default indent-tabs-mode nil)
+(setq tab-width 4)
+
+;;;** Modeline
+;; This snippet sets up the modeline to only show the major mode.
+;; Does not seem to work in `org-agenda'.
 (setq mode-line-modes
       (mapcar (lambda (elem)
-		(pcase elem
-		  (`(:propertize (,_ minor-mode-alist . ,_) . ,_)
-		   "")
-		  (t elem)))
-	      mode-line-modes))
+                (pcase elem
+                  (`(:propertize (,_ minor-mode-alist . ,_) . ,_)
+                   "")
+                  (_ elem)))
+              mode-line-modes))
 
-					; ITerm2 mouse support
-(unless window-system
-  (add-hook 'after-init-hook (lambda () (load-theme 'termbright)) t)
-  (require 'mouse)
-  (xterm-mouse-mode t)
-  (defun track-mouse (e))
-  (setq mouse-sel-mode t))
+;;;** Disabled Commands
+(put 'narrow-to-region 'disabled nil)
+(put 'narrow-to-defun 'disabled nil)
+(put 'upcase-region 'disabled nil)
+(put 'dired-find-alternate-file 'disabled nil)
 
-					; Theme
-(defun rmn/toggle-theme ()
+;;;* Backups
+;; I prefer to have a single directory where all backups are stored.
+;; Otherwise, the current directory is cluttered.
+(setq backup-directory-alist '(("." . "~/.EmacsBackups")))
+(setq backup-by-copying t
+      delete-old-versions t
+      version-control t
+      kept-new-versions 5
+      kept-old-versions 2)
+
+;;;* Theming
+;; I find it easier to use `customize-themes' to change the current
+;; theme.  `rn/toggle-theme' is used to toggle between Emacs' default
+;; light and dark themes.
+(defun rn/toggle-theme ()
   (interactive)
-  (let ((togls '(("black" . "white") ("white" . "black")))
+  (let ((togls '(("black" . "white")
+		 ("white" . "black")))
 	(fg (downcase (face-attribute 'default :foreground)))
 	(bg (downcase (face-attribute 'default :background))))
     (set-foreground-color (cdr (assoc fg togls)))
     (set-background-color (cdr (assoc bg togls)))))
 
-					; Viper
-(defvar rmn/use-viper nil)
-(when rmn/use-viper
-  (setq viper-custom-file-name "~/.emacs.d/viper")
-  (setq viper-mode t)
-  (require 'viper))
-
-					; `suspend-frame'
-(global-unset-key (kbd "C-z"))
-(global-unset-key (kbd "C-x C-z"))
-
-					; Terminal encoding settings
-(when (eq system-type 'darwin)
-  (set-terminal-coding-system 'utf-8)
-  (set-keyboard-coding-system 'utf-8))
-(prefer-coding-system 'utf-8)
-
-					; Movement & Editing
+;;;* Movement and Editing
+;;;** General
+(require 'misc)
 (define-key global-map (kbd "M-z") 'zap-up-to-char)
 
+;; [08/17/2019]
+;; Snippet from https://github.com/technomancy/better-defaults/
+(define-key global-map (kbd "C-s") 'isearch-forward-regexp)
+(define-key global-map (kbd "C-r") 'isearch-backward-regexp)
+(define-key global-map (kbd "C-M-s") 'isearch-forward)
+(define-key global-map (kbd "C-M-r") 'isearch-backward)
+
+;; [08/15/2019] Better binding for a command I know is useful but
+;; rarely use.
+(define-key global-map (kbd "C-c r") 'query-replace-regexp)
+
+;;;** Binary movement
+;; Snippet from https://www.emacswiki.org/emacs/EmacsNiftyTricks
+;; [08/12/2019] This doesn't get used as much so consider removing it
+;; or changing the keybindings.
 (let ((beg -1)
       (end -1)
       (prev-mid -1))
+
   (defun backward-binary ()
     (interactive)
     (if (/= prev-mid (point))
-	(setq beg -1 end -1)
+        (setq beg -1
+              end -1)
       (setq end prev-mid))
-    (if (< beg 0) (setq beg (line-beginning-position)
-			end (point)))
+    (if (< beg 0)
+        (setq beg (line-beginning-position)
+              end (point)))
     (setq prev-mid (/ (+ beg end) 2))
     (goto-char prev-mid))
+
   (defun forward-binary ()
     (interactive)
     (if (/= prev-mid (point))
-	(setq beg -1 end -1)
+        (setq beg -1
+              end -1)
       (setq beg prev-mid))
-    (if (< end 0) (setq beg (point)
-			end (line-end-position)))
+    (if (< end 0)
+        (setq beg (point)
+              end (line-end-position)))
     (setq prev-mid (/ (+ beg end) 2))
     (goto-char prev-mid)))
 
-(defvar rmn/movement-map (make-sparse-keymap)
-  "Keymap for bindings related to movements.")
+;;;** User movement map
+;; The idea is to have a persistent map.  This is set to the
+;; keybinding `C-c m'.  After `C-c m', any binding defined using
+;; `rn/movement-define-key' will continue to persist (until a key not
+;; in `rn/movement-map' or `C-g' is pressed).
+(defvar rn/movement-map (make-sparse-keymap)
+  "Keymap for bindings related to movement and editing.")
 
-(defmacro rmn/movement-persistent (f)
+(defmacro rn/movement-persistent (f)
   `(lambda ()
      (interactive)
      (funcall ,f)
-     (set-transient-map rmn/movement-map)))
+     (set-transient-map rn/movement-map)))
 
-(defmacro rmn/movement-define-key (k f)
-  `(define-key rmn/movement-map ,k (rmn/movement-persistent ,f)))
+(defmacro rn/movement-define-key (k f)
+  "Define a keybinding for F and make it \"persistent\".  It is best
+when K is a single keyboard character.  K can be used repeatedly."
+  `(define-key rn/movement-map ,k (rn/movement-persistent ,f)))
 
-(define-key global-map (kbd "C-c m") rmn/movement-map)
+(define-key global-map (kbd "C-c m") rn/movement-map)
 
-(defun seek-backward-to-char (chr)
-  "Seek backwards to a character"
-  (interactive "cSeek back to char: ")
+;;;*** Movement and Editing functions
+(defun rn/seek-backward-to-char (chr)
+  "Seek backward to CHR."
+  (interactive "cSeek backward to: ")
   (while (not (= (char-after) chr))
     (forward-char -1)))
 
-(defun seek-forward-to-char (char)
-  "Seek forwards to a character"
-  (interactive "cSeek to char: ")
-  (while (not (= (char-after) char))
+(defun rn/seek-forward-to-char (chr)
+  "Seek forward to CHR"
+  (interactive "cSeek forward to: ")
+  (while (not (= (char-after) chr))
     (forward-char 1)))
 
-(defun delete-between-pair (char)
-  "Delete in between the given pair.  Handles opening and closing
+(defun rn/delete-between-pair (chr)
+  "Delete in between given pair.  Handles opening and closing
 brackets."
-  (interactive "cDelete between char: ")
+  (interactive "cDelete between: ")
   (let ((pairs (mapcar (lambda (x)
-			 (cons (string-to-char (car x))
-			       (string-to-char (cdr x))))
-		       '(("<" . ">")
-			 ("{" . "}")
-			 ("(" . ")")
-			 ("[" . "]"))))
-	endch)
-    (setq endch (or (cdr (assoc char pairs))
-		    char))
-    (seek-backward-to-char char)
+                         (cons (string-to-char (car x))
+                               (string-to-char (cdr x))))
+                       '(("<" . ">")
+                         ("{" . "}")
+                         ("(" . ")")
+                         ("[" . "]"))))
+        endch)
+    (setq endch (or (cdr (assoc chr pairs))
+                    chr))
+    (rn/seek-backward-to-char chr)
     (forward-char 1)
-    (zap-to-char 1 endch)
-    (insert endch)
-    (forward-char -1)))
+    (zap-up-to-char 1 endch)))
 
-(defun rmn/kill-word ()
-  "Kill the word point is at.  If point is at a word boundary, this
-will kill the word to the right of point."
+(defun rn/kill-word ()
+  "Kill word at point.  If point is at a word boundary, kill the word
+to the right."
   (interactive)
   (if (looking-at "\\b")
       (kill-word 1)
     (backward-word)
     (kill-word 1)))
 
-(define-key rmn/movement-map (kbd "i") 'delete-between-pair)
-(define-key rmn/movement-map (kbd "w") 'rmn/kill-word)
-(define-key rmn/movement-map (kbd "z") 'zap-up-to-char)
-(define-key rmn/movement-map (kbd "F") 'seek-backward-to-char)
-(define-key rmn/movement-map (kbd "f") 'seek-forward-to-char)
+;;;*** Keybindings
+(define-key rn/movement-map (kbd "i") 'rn/delete-between-pair)
+(define-key rn/movement-map (kbd "w") 'rn/kill-word)
+(define-key rn/movement-map (kbd "F") 'rn/seek-backward-to-char)
+(define-key rn/movement-map (kbd "f") 'rn/seek-forward-to-char)
 
-(rmn/movement-define-key (kbd "n") 'forward-binary)
-(rmn/movement-define-key (kbd "p") 'backward-binary)
-(rmn/movement-define-key (kbd "}") 'forward-paragraph)
-(rmn/movement-define-key (kbd "{") 'backward-paragraph)
-(rmn/movement-define-key (kbd "k") 'kill-whole-line)
+(rn/movement-define-key (kbd "n") 'forward-binary)
+(rn/movement-define-key (kbd "p") 'backward-binary)
+(rn/movement-define-key (kbd "}") 'forward-paragraph)
+(rn/movement-define-key (kbd "{") 'backward-paragraph)
+(rn/movement-define-key (kbd "k") 'kill-whole-line)
 
-					; Hyperbole
-(require 'hyperbole)
-(global-set-key (kbd "<S-mouse-1>") 'action-key)
-(setq hycontrol-help-flag nil)
-
-
-					; Crux
-(require 'crux)
-(crux-reopen-as-root-mode)
-(define-key emacs-lisp-mode-map (kbd "C-c e") 'crux-eval-and-replace)
-(define-key global-map (kbd "C-c D") 'crux-delete-file-and-buffer)
-(define-key global-map (kbd "C-c TAB")
-  'crux-indent-rigidly-and-copy-to-clipboard)
-
-					; EXWM
-(defvar rmn/use-exwm nil)
-
-(when rmn/use-exwm
-  (require 'exwm)
-  (require 'exwm-config)
-  (require 'exwm-systemtray)
-  (exwm-enable)
-  (exwm-config-default)
-  (exwm-systemtray-enable))
-
-					; Comint
-(require 'comint)
-(setq comint-buffer-maximum-size 2048
-      comint-prompt-read-only t)
-(define-key global-map (kbd "C-c M-o") 'comint-clear-buffer)
-
-					; Info
-(require 'info)
-(add-hook 'Info-mode-hook
-	  (lambda ()
-	    (add-to-list 'Info-directory-list
-			 (expand-file-name "~/info"))))
-
-					; Dired
-(load-library "dired-x")
-(setq dired-dwim-target t
-      wdired-allow-to-change-permissions t)
-
-					; Shell
-(require 'shell)
-(define-key shell-mode-map (kbd "SPC") 'comint-magic-space)
-(add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
-
-					; "M-x shell RET" in current buffer
-(add-to-list 'display-buffer-alist
-	     '("^\\*shell\\*$" . (display-buffer-same-window)))
-
-					; Eshell
-;; `clear' doesn't remove scrollback by default
-(defun eshell/clear ()
-  (interactive)
-  (eshell/clear-scrollback))
-
-					; Exec path from shell
-(when (eq system-type 'darwin)
-  (exec-path-from-shell-initialize))
-
-					; Handling frames
-(define-key global-map (kbd "C-c o") 'other-frame)
-
-					; Handling windows
-(winner-mode 1)
-(define-key global-map (kbd "<f7>") 'winner-undo)
-(define-key global-map (kbd "<f8>") 'winner-redo)
-
-(require 'ace-window)
-(ace-window-display-mode 1)
-(define-key global-map (kbd "C-'") 'ace-window)
-(define-key global-map (kbd "M-'") 'ace-window)	; better in terminals
-(setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)
-      aw-scope 'frame)
-
-					; Finding files
-(require 'ffap)
-(ffap-bindings)
-(setq ffap-require-prefix t)
-
-(defvar rmn/use-ido nil)
-(defvar rmn/use-helm nil)
-
-					; Ido
-(when rmn/use-ido
-  (require 'ido)
-  ;; (require 'ido-vertical-mode)
-  (setq ido-enable-flex-matching t
-	ido-use-virtual-buffers t
-	ido-everywhere t
-	ido-use-filename-at-point 'guess
-	ido-use-url-at-point t
-	ido-case-fold t
-	ido-enable-regexp t
-	ido-max-window-height 1)
-  (ido-mode 1)
-  ;; (ido-vertical-mode 1)
-  ;; (setq ido-vertical-define-keys 'C-n-and-C-p-only)
-
-  (define-key ido-file-dir-completion-map (kbd "C-l")
-    'ido-delete-backward-word-updir)
-
-					; M-x -- smex
-  (require 'smex)
-  (setq smex-save-file (expand-file-name ".smex-items" user-emacs-directory))
-  (smex-initialize)
-  (define-key global-map (kbd "M-x") 'smex)
-  (define-key global-map (kbd "M-X") 'smex-major-mode-commands)
-  (define-key global-map (kbd "C-c C-c M-x") 'execute-extended-command)
-
-					; smex hyphen on space
-  (defadvice smex (around space-inserts-hyphen activate compile)
-    (let ((ido-cannot-complete-command
-	   `(lambda ()
-	      (interactive)
-	      (if (string= " " (this-command-keys))
-		  (insert ?-)
-		(funcall ,ido-cannot-complete-command)))))
-      ad-do-it)))
-
-
-					; Helm
-(when rmn/use-helm
-  (require 'helm)
-  (require 'helm-config)
-  (global-set-key (kbd "C-c h") 'helm-command-prefix)
-  (global-unset-key (kbd "C-x c"))
-  ;; rebind tab to run persistent action
-  (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
-  ;; make this work in a terminal
-  (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action)
-  ;; list actions using C-z
-  (define-key helm-map (kbd "C-z") 'helm-select-action)
-  ;; global-map settings
-  (define-key global-map (kbd "M-x") 'helm-M-x)
-  (define-key global-map (kbd "M-y") 'helm-show-kill-ring)
-  (define-key global-map (kbd "C-x b") 'helm-mini)
-  (define-key global-map (kbd "C-x C-f") 'helm-find-files)
-  (define-key global-map (kbd "C-c h o") 'helm-occur)
-  (define-key global-map (kbd "C-c h g") 'helm-google-suggest)
-  ;; apperance
-  (setq helm-split-window-in-side-p t ; helm buffer in current window
-	helm-move-to-line-cycle-in-source t
-	helm-ff-search-library-in-sexp t
-	helm-scroll-amount 8
-	helm-ff-file-name-history-use-recentf t
-	helm-echo-input-in-header-line t
-	helm-autoresize-max-height 0
-	helm-autoresize-min-height 20)
-  ;; general
-  (setq helm-M-x-fuzzy-match t
-	helm-buffers-fuzzy-matching t
-	helm-recentf-fuzzy-match t
-	helm-semantic-fuzzy-match t
-	helm-imenu-fuzzy-match t
-	helm-apropos-fuzzy-match t
-	helm-lisp-fuzzy-completion t)
-  (helm-autoresize-mode 1)
-  (helm-mode 1))
-
-					; Handle buffers
-(define-key global-map (kbd "C-x C-b") 'bs-show)
-
-					; Protect buffers from being killed
-(defun rmn/protect-buffers ()
-  (let ((protected '("*scratch*" "*Messages*")))
-    (dolist (buf protected)
-      (with-current-buffer buf
-	(emacs-lock-mode 'kill)))))
-
-(add-hook 'after-init-hook #'rmn/protect-buffers)
-
-
-					; Disabled commands
-(put 'narrow-to-region 'disabled nil)
-(put 'narrowprg-to-region 'disabled nil)
-(put 'narrow-to-defun 'disabled nil)
-(put 'upcase-region 'disabled nil)
-(put 'dired-find-alternate-file 'disabled nil)
-
-					; Backups
-(setq backup-directory-alist '(("." . "~/.backup")))
-(setq make-backup-files t
-      delete-old-versions t
-      kept-new-versions 6
-      kept-old-versions 2
-      version-control t)
-
-					; Mails
-(setq mail-user-agent 'gnus-user-agent
-      read-mail-command 'gnus)
-
-(setq send-mail-function 'message-send-mail-with-sendmail
-      message-send-mail-function 'message-send-mail-with-sendmail
-      sendmail-program "msmtp"
-      message-sendmail-extra-arguments '("-a" "default"))
-
-					; Man
-(require 'man)
-(setq Man-notify-method 'pushy)
-
-					; Imenu
-(define-key global-map (kbd "C-c .") 'imenu-anywhere)
-
-					; Text mode
-(add-hook 'text-mode-hook
-	  (lambda ()
-	    (setq fill-column 74)
-	    (turn-on-auto-fill)))
-
-					; Compile
-(define-key global-map (kbd "C-c p") 'compile)
-
-					; LaTeX
-(setq TeX-auto-save t)
-(setq TeX-parse-self t)
-
-					; PDF files
-(pdf-loader-install)
-
-					; Magit
-(define-key global-map (kbd "C-x g") 'magit-status)
-(define-key global-map (kbd "C-c M-g") 'magit-dispatch-popup)
-(setq magit-git-executable "git")
-
-					; Company
-(require 'company)
-(setq company-global-modes '(not shell-mode))
-(global-company-mode 1)
-(setq company-idle-delay 0)
-
-					; Paredit
+;;;** Paredit
 (require 'paredit)
 (autoload 'enable-paredit-mode "paredit"
   "Pseudo-structural editing of Lisp code." t)
@@ -495,225 +282,337 @@ will kill the word to the right of point."
 (add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
 (add-hook 'scheme-mode-hook #'enable-paredit-mode)
 
-					; Yasnippet
-(require 'yasnippet)
-(yas-global-mode 1)
+;;;* Comint
+(setq comint-buffer-maximum-size 2048
+      comint-prompt-read-only t)
+(define-key global-map (kbd "C-c M-o") 'comint-clear-buffer)
+(add-hook 'comint-output-filter-functions 'comint-watch-for-password-prompt)
 
-					; GDB
-(require 'gud)
-(setq gdb-show-main t)
-(add-hook 'gud-mode-hook #'gdb-many-windows)
-
-					; AucTeX
-(setq TeX-parse-self t)
-(setq TeX-auto-save t)
-
-(add-hook 'LaTeX-mode-hook 'visual-line-mode)
-(add-hook 'LaTeX-mode-hook 'flyspell-mode)
-(add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
-
-(defun rmn/auctex-preview-after-save ()
-  "Run `preview-buffer' after saving a LaTeX file if any part of the
-buffer was previewed before."
+;;;* Eshell
+(require 'eshell)
+(defun rn/setup-eshell ()
   (interactive)
-  (add-hook 'after-save-hook
-	    (lambda ()
-	      (interactive)
-	      (when preview-last-location
-		(preview-buffer))) nil t))
+  ;; [08/16/2019] M-RET is bound to `eshell-queue-input' by default.
+  ;; Removing this binding lets us use Hyperboles M-RET instead --
+  ;; which is far more useful.
+  (local-set-key (kbd "M-<RET>") nil))
+(add-hook 'eshell-mode-hook 'rn/setup-eshell)
 
-(add-hook 'LaTeX-mode-hook 'rmn/auctex-preview-after-save)
+;;;* Dired
+(require 'dired)
+(setq dired-dwim-target t
+      wdired-allow-to-change-permissions t)
 
-					; ATS
-(when (file-exists-p (concat (getenv "HOME") "/ats2"))
-  (setenv "PATSHOME" (concat (getenv "HOME") "/ats2"))
-  (add-to-list 'load-path "~/ats2/utils/emacs/")
-  (require 'ats2-mode)
-  (require 'flymake-ats2)
-  (add-hook 'ats-mode-hook 'flymake-mode))
+(when (eq system-type 'darwin)
+  (defun dired-mac-open ()
+    (interactive)
+    (let ((fname (dired-get-file-for-visit)))
+      (if (file-exists-p fname)
+          (call-process "/usr/bin/open" nil 0 nil fname))))
+  (define-key dired-mode-map "o" 'dired-mac-open))
 
-(defun rmn/setup-ats-mode ()
-  (electric-pair-mode t)
-  (show-trailing-whitespace t)
-  (setq fill-column 76)
-  (turn-on-auto-fill))
-(add-hook 'ats-mode-hook #'rmn/setup-ats-mode)
+;;;* Window Management
+(winner-mode 1)
+(define-key global-map (kbd "<f7>") 'winner-undo)
+(define-key global-map (kbd "<f8>") 'winner-redo)
 
-					; C
-(defun rmn/setup-c-mode ()
+(require 'ace-window)
+(ace-window-display-mode 1)
+(define-key global-map (kbd "C--") 'ace-window)
+(setq aw-keys '(?a ?o ?e ?i ?d ?h ?t ?s)
+      aw-scope 'frame)
+
+;;;* Finding Files and File Management
+(require 'ffap)
+(setq ffap-require-prefix t)
+(ffap-bindings)
+
+(defvar rn/use-ido nil)
+(when rn/use-ido
+  (require 'ido)
+  (setq ido-enable-flex-matching t
+        ido-use-virtual-buffers t
+        ido-everywhere t
+        ido-use-filename-at-point 'guess
+        ido-use-url-at-point t
+        ido-case-fold t
+        ido-enable-regexp t
+        ido-max-window-height 1)
+  (define-key ido-file-dir-completion-map (kbd "C-l")
+    'ido-delete-backward-word-updir)
+  (ido-mode t))
+
+;;;* Smex
+(defvar rn/use-smex nil)
+(when rn/use-smex
+  (require 'smex)
+  (setq smex-save-file (expand-file-name ".smex-items" user-emacs-directory))
+  (smex-initialize)
+  (define-key global-map (kbd "M-x") 'smex)
+  (define-key global-map (kbd "M-X") 'smex-major-mode-commands)
+  (define-key global-map (kbd "C-c C-c M-x") 'execute-extended-command))
+
+
+;;;* Handling Buffers
+(define-key global-map (kbd "C-x C-b") 'bs-show)
+
+(defun rn/protect-buffers ()
+  (let ((protected '("*scratch*" "*Messages*")))
+    (dolist (buf protected)
+      (with-current-buffer buf
+	(emacs-lock-mode 'kill)))))
+(add-hook 'after-init-hook 'rn/protect-buffers)
+
+;;;* Completion (company)
+(require 'company)
+(global-company-mode 1)
+
+;;;* Hyperbole
+;; Disable default hyperbole keybindings.  Set `hkey-init' to non-nil
+;; to reenable.
+(setq hkey-init nil)
+(require 'hyperbole)
+
+(setq hpath:display-where 'this-window)
+
+;; [08/21/2019] Is `hmouse-install' required?
+(hmouse-unshifted-setup)
+(hmouse-install)
+
+;;;** Keybindings
+;; Take a look at "(hyperbole)Global Key Bindings".
+(define-key global-map (kbd "M-RET") 'hkey-either)
+(define-key global-map (kbd "S-<mouse-1>") 'hkey-either)
+(define-key global-map (kbd "S-<mouse-3>") 'assist-mouse-key-emacs)
+(define-key global-map (kbd "C-c /") 'hui-search-web)
+(define-key global-map (kbd "M-o") 'hkey-operate)
+(define-key global-map (kbd "C-h A") 'hkey-help)
+(define-key global-map (kbd "C-c <RET>") 'hui-select-thing)
+(define-key global-map (kbd "C-h h") 'hyperbole)
+
+;;;* Outline mode
+(require 'outline)
+(define-key outline-minor-mode-map (kbd "TAB")
+  '(menu-item "" nil :filter
+              (lambda (&optional _)
+                (when (outline-on-heading-p)
+                  'outline-toggle-children))))
+
+(define-key outline-minor-mode-map (kbd "<backtab>")
+  (lambda ()
+    (interactive)
+    (save-excursion
+      (goto-char (point-min))
+      (outline-show-all)
+      ;; (outline-hide-leaves)
+      )))
+
+;;;* Version control
+;;;** VC
+(require 'vc)
+(add-hook 'vc-git-log-edit-mode-hook
+          (lambda ()
+            (set-fill-column 70)
+            (turn-on-auto-fill)))
+
+;;;** Magit
+(require 'magit)
+(define-key global-map (kbd "C-x g") 'magit-status)
+(define-key global-map (kbd "C-c M-g") 'magit-dispatch-popup)
+
+;;;* Languages
+;;;** C
+(defun rn/setup-c-mode ()
   (setq c-default-style "bsd"
-	c-basic-offset 4
-	tab-width 4
-	indent-tabs-mode t
-	show-trailing-whitespace t)
-					; (display-line-numbers-mode t)
+        c-basic-offset 4
+        tab-width 4
+        show-trailing-whitespace t)
   (electric-pair-mode t)
   (local-set-key (kbd "M-*") 'pop-tag-mark)
   (local-set-key (kbd "C-c f") 'ff-find-other-file))
-(add-hook 'c-mode-common-hook #'rmn/setup-c-mode)
+(add-hook 'c-mode-common-hook 'rn/setup-c-mode)
 
-					; Common Lisp
-(require 'slime)
-(setq inferior-lisp-program "sbcl")
-
-					; Coq
-(setq proof-splash-enable nil)
-(require 'proof-general)
-(defun rmn/setup-coq-mode ()
-  (tuareg-opam-update-env "default")
-  (turn-on-auto-fill)
-  (setq company-coq-disabled-features '(spinner prettify-symbols))
-  (company-coq-mode)
-  (setq fill-column 78
-	show-trailing-whitespace t
-	coq-compile-before-require t
-	;; Proof General
-	proof-auto-raise-buffers nil
-	proof-three-window-enable t
-	proof-follow-mode 'followdown
-	PA-one-command-per-line nil))
-(add-hook 'coq-mode-hook #'rmn/setup-coq-mode)
-
-					; Erlang
-(require 'erlang)
-(add-hook 'erlang-mode-hook #'company-erlang-init)
-
-					; Haskell
-(require 'haskell-mode)
-(defun rmn/setup-haskell-mode ()
-  (setq indent-tabs-mode nil
-	fill-column 78)
-  ;; (interactive-haskell-mode 1)
-  )
-(intero-global-mode 1)
-(add-hook 'haskell-mode-hook #'rmn/setup-haskell-mode)
-(add-to-list 'company-backends 'company-ghc)
-
-					; Standard ML
-(require 'sml-mode)
-
-(defun rmn/setup-sml-mode ()
-  (setq sml-program-name "sml")
-  (setq sml-indent-level 2)
-  (setq indent-tabs-mode nil))
-(add-hook 'sml-mode-hook #'rmn/setup-sml-mode)
-
-(defun rmn/setup-inferior-sml-mode ()
-  (add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
-  (setq comint-scroll-show-maximum-output t)
-  (setq comint-input-autoexpand nil))
-(add-hook 'inferior-sml-mode-hook #'rmn/setup-inferior-sml-mode)
-
-					; Twelf
-(setq twelf-root "/Users/rnagasam/.smackage/lib/twelf/v1.7.1/")
-(load (concat twelf-root "emacs/twelf-init.el"))
-
-					; OCaml
+;;;** OCaml
 (require 'tuareg)
-(let ((opam-share (ignore-errors
-		    (car (process-lines "opam" "config" "var" "share")))))
+(defun rn/setup-tuareg-mode ()
+  (tuareg-opam-update-env "4.07.1")
+  (setq show-trailing-whitespace t)
+  (when (fboundp 'prettify-symbols-mode)
+    (prettify-symbols-mode)))
+(add-hook 'tuareg-mode-hook 'rn/setup-tuareg-mode)
+
+(let ((opam-share
+       (ignore-errors
+	 (car (process-lines "opam" "config" "var" "share")))))
   (when (and opam-share (file-directory-p opam-share))
     (add-to-list 'load-path (expand-file-name "emacs/site-lisp" opam-share))
     (autoload 'merlin-mode "merlin" nil t nil)
     (add-hook 'tuareg-mode-hook 'merlin-mode t)
-    (add-hook 'caml-mode-hook 'merlin-mode t)))
-
-(defun rmn/setup-tuareg-mode ()
-  (tuareg-opam-update-env "default")
-  (setq fill-column 78)
-  (turn-on-auto-fill)
-  (setq show-trailing-whitespace t)
-  (when (functionp 'prettify-symbols-mode)
-    (prettify-symbols-mode)))
-(add-hook 'tuareg-mode-hook #'rmn/setup-tuareg-mode)
-(add-hook 'tuareg-mode-hook 'merlin-mode)
-
-					; Merlin and Company
+    (add-hook 'caml-mode-hook 'merlin-mode t)
+    (setq merlin-command 'opam)
+    (require 'ocp-indent)))
 (with-eval-after-load 'company
   (add-to-list 'company-backends 'merlin-company-backend))
 
-					; Python
-(setq python-shell-interpreter "ipython"
-      python-shell-interpreter-args "-i --simple-prompt")
-(require 'elpy)
-(elpy-enable)
-(defun rmn/setup-elpy-mode ()
-  (setq indent-tabs-mode t
-	tab-width 4
-	python-indent-offset 4)
-  (highlight-indentation-mode -1))
-(add-hook 'python-mode-hook #'rmn/setup-elpy-mode)
-(add-hook 'elpy-mode-hook #'rmn/setup-elpy-mode)
-;; Activate default environment
-(pyvenv-activate (concat (getenv "HOME") "/pyenv/base"))
+;;;** Coq
+(require 'proof-general)
+(setq proof-splash-enable nil)
+(setq coq-compile-before-require t
+      coq-diffs 'on
+      proof-auto-raise-buffers nil
+      proof-three-window-enable t
+      ;; proof-follow-mode 'followdown
+      PA-one-command-per-line nil)
+(setq company-coq-disabled-features '(prettify-symbols smart-subscripts))
+(add-hook 'coq-mode-hook 'company-coq-mode)
 
-					; Scheme
-(load-library "xscheme")
+;;;** Prolog
+(autoload 'run-prolog "prolog" "Start a Prolog sub-process." t)
+(autoload 'prolog-mode "prolog" "Major mode for editing Prolog programs." t)
+(setq prolog-system 'swi)
+(add-to-list 'auto-mode-alist '("\\.pl$" . prolog-mode))
 
-					; YAML
-(require 'yaml-mode)
-(add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
+;;;** Standard ML
+(require 'sml-mode)
 
+(defun rn/setup-sml-mode ()
+  (setq sml-indent-level 2)
+  (setq fill-column 78)
+  (turn-on-auto-fill))
+(add-hook 'sml-mode-hook 'rn/setup-sml-mode)
 
-					; Org mode
+;;;*** Indentation
+;; This indents structures and signatures to look like
+;; structure Foo =          signature FOO =
+;; ..struct                 ..sig
+;; ....{...}                ....{...}
+;; ..end;                   ..end;
+(defun rn/sml-rules (orig kind token)
+  (pcase (cons kind token)
+    (`(:before . "d=")
+     (if (smie-rule-parent-p "structure" "signature" "functor")
+         2
+       (funcall orig kind token)))
+    (`(:after . "struct") 2)
+    (_ (funcall orig kind token))))
+(add-hook 'sml-mode-hook
+          (lambda ()
+            (advice-add smie-rules-function :around #'rn/sml-rules)))
+
+;;;** Twelf
+;; TODO: Defer loading until actually required.  Consider adding rules
+;; to `auto-mode-alist'.
+(setq twelf-root "/Users/rnagasam/.smackage/lib/twelf/v1.7.1/")
+(load (concat twelf-root "emacs/twelf-init.el"))
+
+;;;* Document Preperation
+;;;** HTML
+(require 'html-helper-mode)
+(setq auto-mode-alist (cons '("\\.html$" . html-helper-mode) auto-mode-alist))
+(setq html-helper-do-write-file-hooks t
+      html-helper-build-new-buffer t)
+
+;;;** LaTeX
+;; [08/12/2019] auctex installed manually at
+;; ~/.emacs.d/site-lisp/auctex-12.1
+(load "auctex.el" nil t t)
+(load "preview-latex.el" nil t t)
+
+(setq TeX-auto-save t
+      TeX-parse-self t)
+(setq-default TeX-master nil)
+
+(defun rn/setup-latex ()
+  (interactive)
+  (visual-line-mode 1)
+  (flyspell-mode 1)
+  (setq-local fill-column 72)
+  (turn-on-auto-fill))
+
+(defun rn/auctex-preview-after-save ()
+  "Run `preview-buffer' after saving, if any part of the buffer
+was previewed before."
+  (interactive)
+  (add-hook 'after-save-hook
+            (lambda ()
+              (interactive)
+              (when preview-last-location
+                (preview-buffer))) nil t))
+
+(add-hook 'LaTeX-mode-hook 'rn/setup-latex)
+(add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
+(add-hook 'LaTeX-mode-hook 'rn/auctex-preview-after-save)
+
+;;;** RefTeX
+(require 'reftex)
+
+(setq reftex-plug-into-AUCTeX t)
+(setq reftex-default-bibliography '("~/database.bib"))
+(add-hook 'LaTeX-mode-hook 'turn-on-reftex)
+
+;;;* Org mode
 (require 'org)
 (require 'org-agenda)
 (require 'ox-beamer)
 (require 'ox-latex)
 
+(setq org-todo-keywords
+      '((sequence "TODO(t)" "FEEDBACK(f@/!)" "VERIFY(v)" "|"
+                  "DONE(d)" "CANCELLED(c)")))
+
 (setq org-log-done 'time
       org-enforce-todo-dependencies t
       org-enforce-todo-checkbox-dependencies t)
 
-(setq org-agenda-files '("~/.org")
+(setq org-agenda-files '("~/org")
       org-agenda-window-setup 'current-window
-      org-agenda-ndays 7
-      org-agenda-show-all-dates t
-      org-agenda-start-on-weekday nil
-      org-agenda-skip-deadline-if-done t
-      org-agenda-skip-scheduled-if-done t
-      org-use-fast-todo-selection t
-      org-use-speed-commands t)
+      org-agenda-ndays 7)
 
-(setq org-todo-keywords
-      '((sequence "TODO(t)" "NEXT(t)" "WAITING(w@/!)" "HOLD(h@/!)"
-		  "MEETING(m)" "PHONE(p)" "|" "DONE(d)" "CANCELLED(c@/!)")))
+(setq org-use-fast-todo-selection t
+      org-treat-S-cursor-todo-selection-as-state-change t
+      org-use-speed-commands t
+      org-use-sub-superscripts t
+      org-return-follows-link t)
 
-(setq org-default-notes-file "~/.org/refile.org")
-
-(setq org-capture-templates
-      '(("t" "Todo" entry (file "~/.org/refile.org")
-	 "** TODO %?\n%i   %u" :empty-lines 1)
-	("T" "Todo with link" entry (file "~/.org/refile.org")
-	 "** TODO %?\n%i   %u\n   %A" :empty-lines 1)
-	("m" "Meeting" entry (file "~/.org/refile.org")
-	 "** MEETING %?\n   SCHEDULED: %^T" :empty-lines 1)
-	("p" "Phone call" entry (file "~/.org/refile.org")
-	 "** PHONE %?\n   SCHEDULED: %^T" :empty-lines 1)))
-
-(setq org-refile-targets '((nil :maxlevel . 9)
-			   (org-agenda-files :maxlevel . 9))
-      org-refile-use-outline-path t
-      org-outline-path-complete-in-steps nil
+(setq org-default-notes-file "~/org/refile.org")
+(setq org-refile-targets '((nil :maxlevel . 3)
+                           (org-agenda-files :maxlevel . 3))
       org-refile-allow-creating-parent-nodes 'confirm)
 
-(advice-add 'org-refile :after
-	    (lambda (&rest _)
-	      (org-save-all-org-buffers)))
+(setq org-capture-templates
+      '(("t" "todo" entry (file "~/org/refile.org")
+         "* TODO %?\n%U\n")))
 
-(setq org-completion-use-ido t)
+(defun rn/show-agenda-and-todo (&optional arg)
+  (interactive "P")
+  (org-agenda arg "n"))
 
-(define-key org-mode-map (kbd "C-'") nil) ; originally `org-cycle-agenda-files'
-(define-key global-map (kbd "C-c l") 'org-store-link)
+(add-to-list 'reftex-cite-format-builtin
+             `(org "Org mode citations"
+                   ((?\C-m . "cite:%l")
+                    (?a . ",%l")
+                    (?r . ,(concat
+                            "** %t\n"
+                            ":PROPERTIES:\n"
+                            ":Author(s): %a\n"
+                            ":Year: %y\n"
+                            ":END:\n"
+                            "[[~/Papers/%l.pdf][%l-paper]]")))))
+
+(add-hook 'org-mode-hook
+          (lambda () (define-key org-mode-map (kbd "C-c [")
+                       (lambda ()
+                         (interactive)
+                         (let ((reftex-cite-format 'org))
+                           (reftex-citation))))))
+
 (define-key global-map (kbd "C-c a") 'org-agenda)
+(define-key global-map (kbd "C-c z") 'rn/show-agenda-and-todo)
+(define-key global-map (kbd "C-c l") 'org-store-link)
 (define-key global-map (kbd "<f12>") 'org-agenda)
-(define-key global-map (kbd "<f9> r") 'org-capture)
+(define-key global-map (kbd "C-c c") 'org-capture)
 
-(defun rmn/setup-org-mode ()
-  (setq fill-column 78)
-  (turn-on-auto-fill))
-(add-hook 'org-mode-hook #'rmn/setup-org-mode)
-
+;;;** Org Babel
 (require 'ob)
 (org-babel-do-load-languages
  'org-babel-load-languages
@@ -725,7 +624,6 @@ buffer was previewed before."
    (dot . t)
    (java . t)
    (calc . t)
-   (octave . t)
    (makefile . t)))
 
 (setq org-confirm-babel-evaluate nil
@@ -734,63 +632,14 @@ buffer was previewed before."
       org-src-preserve-indentation t
       org-src-window-setup 'current-window)
 
-					; Tramp
-(require 'tramp)
-(setq tramp-debug-buffer t)
-(setq tramp-verbose 10)
-(setq tramp-default-method "ssh")
+;;;* Miscellaneous
+;;;** Digital paper
+(setq dpt-addr "10.0.0.170")
+(require 'dpt-mode)
 
-(require 'tramp-cache)
-(setq tramp-persistency-file-name
-      (expand-file-name "tramp" user-emacs-directory))
-
-(unless (version< emacs-version "26.1")
-  (connection-local-set-profile-variables
-   'remote-bash
-   '((explicit-shell-file-name . "/bin/bash")
-     (explicit-bash-args . ("-i"))))
-
-  (connection-local-set-profiles
-   '(:application tramp :protocol "ssh" :machine "res")
-   'remote-bash))
-
-					; BBDB
-(require 'bbdb)
-(bbdb-initialize 'gnus 'message)
-(setq bbdb/mail-auto-create-p t)
-(setq bbdb/news-auto-create-p t)
-(setq bbdb-file (expand-file-name ".bbdb" user-emacs-directory)
-      bbdb-offer-to-create 'auto
-      bbdb-complete-mail-allow-cycling t)
-
-					; EasyPG
-					; Use Emacs pinentry
-(setenv "GPG_AGENT_INFO" nil)
-(setq epa-file-cache-passphrase-for-symmetric-encryption t)
-
-					; Chess
-(setq chess-images-default-size 60)
-
-					; Docker
-(require 'docker)
-(define-key global-map (kbd "C-c d") 'docker)
-
-					; Dockerfile
-(require 'dockerfile-mode)
-(add-to-list 'auto-mode-alist '("Dockerfile\\'" . dockerfile-mode))
-
-					; Miscellaneous
-(defun rmn/change-aws-res-hostname (arg)
-  "Change hostname of a particular AWS machine in `.ssh/config'.  This
-is required when the ec2 instance is restarted.  The machine can be
-accessed by going to `/ssh:res:<dir>'"
-  (interactive "MNew Hostname: ")
-  (let ((ssh-config-file "~/.ssh/config"))
-    (with-current-buffer (find-file ssh-config-file)
-      (barf-if-buffer-read-only)
-      (save-excursion
-	(goto-char (point-min))
-	(search-forward "Host res")
-	(forward-line)
-	(kill-whole-line)
-	(insert "     HostName " arg "\n")))))
+;;;*
+;;; Local Variables:
+;;; outline-regexp: ";;;\\*+\\|\\`"
+;;; eval: (outline-minor-mode 1)
+;;; eval: (outline-hide-leaves)
+;;; End:
