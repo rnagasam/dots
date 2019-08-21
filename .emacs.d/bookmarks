@@ -2,9 +2,19 @@
 ;;; This format is meant to be slightly human-readable;
 ;;; nevertheless, you probably don't want to edit it.
 ;;; -*- End Of Bookmark File Format Version Stamp -*-
-(("init.el"
- (filename . "~/.emacs.d/init.el")
- (front-context-string . "(require 'ido)\n(")
- (rear-context-string . " t)\n\n					; Ido\n")
- (position . 2361))
+(("org-capture-last-stored-marker"
+ (filename . "~/org/todo.org")
+ (front-context-string . "** TODO Work on ")
+ (rear-context-string . "ation\n\n* Tasks\n\n")
+ (position . 368))
+("org-refile-last-stored"
+ (filename . "~/org/todo.org")
+ (front-context-string . "** TODO Equality")
+ (rear-context-string . "on%20*)][File]]\n")
+ (position . 807))
+("org-capture-last-stored"
+ (filename . "~/org/refile.org")
+ (front-context-string . "* TODO Equality ")
+ (rear-context-string . "on%20*)][File]]\n")
+ (position . 551))
 )
