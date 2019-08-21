@@ -1,18 +1,14 @@
 [user]
 	name = Ramana Nagasamudram
 	email = rnagasam@stevens.edu
-	signingkey = 168DFC8FE5913AD9
-[core]
-	excludesfile = /home/rmn/.gitignore
-	pager = `test \"$TERM\" = \"dumb\" && echo cat || echo less`
-	editor = emacsclient -t
-[commit]
-	gpgsign = true
+	signingkey = EA88745DCE64FDBE
 [alias]
 	co = checkout
-	br = branch
+	br = brach
 	ci = commit
 	st = status
 	unstage = reset HEAD --
 	last = log -p -1 HEAD
 	view = log --all --oneline --decorate --graph
+[core]
+	editor = ec

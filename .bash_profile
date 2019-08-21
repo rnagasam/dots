@@ -1,26 +1,23 @@
 # Bash completion
-[[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]] && . "/usr/local/etc/profile.d/bash_completion.sh"
+[ -f /usr/local/etc/bash_completion ] && . /usr/local/etc/bash_completion
 
-# editor
-export ALTERNATE_EDITOR=""
-export EDITOR="emacsclient -t"
-export VISUAL="emacsclient -c -a emacs"
+# bin dir
+export PATH="/Users/rnagasam/bin:$PATH"
 
-# opam
-test -r /Users/rmn/.opam/opam-init/init.sh && . /Users/rmn/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true
+# Opam
+test -r /Users/rnagasam/.opam/opam-init/init.sh && . /Users/rnagasam/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true
 
-# ATS2
-export PATSHOME=/Users/rmn/ats2
-export PATH=${PATSHOME}/bin:${PATH}
+# SML
+export SMACKAGE_HOME="/Users/rnagasam/.smackage"
+export PATH="/usr/local/smlnj/bin:$SMACKAGE_HOME/bin:$PATH"
 
-# TCL/TK
-export PATH="/usr/local/opt/tcl-tk/bin:$PATH"
-export LDFLAGS="-L/usr/local/opt/tcl-tk/lib"
-export CPPFLAGS="-I/usr/local/opt/tcl-tk/include"
+# Coq -- not through OPAM
+# COQ_BIN="/Applications/CoqIDE_8.10+beta2.app/Contents/Resources/bin"
+# export PATH="$COQ_BIN:$PATH"
 
-# cabal
-CABALHOME=/Users/rmn/.cabal
-export PATH=${CABALHOME}/bin:${PATH}
+export PS1="\w> "
+export HISTIGNORE="ls:cd:clear"
+export HISTTIMEFORMAT="%c "
+export HISTCONTROL="ignoredups"
 
-# dotfiles
-alias config='/usr/bin/git --git-dir=/Users/rmn/dots/ --work-tree=/Users/rmn'
+alias dots="git --work-tree=$HOME --git-dir=$HOME/dots.git/"
