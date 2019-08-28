@@ -101,10 +101,24 @@
         mac-emulate-three-button-mouse 'reverse)
   (define-key global-map (kbd "s-n") 'make-frame-command)
   (define-key global-map (kbd "s-w") 'delete-frame)
+  (define-key global-map (kbd "s-l") 'toggle-frame-maximized)
   (define-key global-map (kbd "<s-right>") 'other-frame)
   (define-key global-map (kbd "<s-left>") (lambda ()
                                             (interactive)
                                             (other-frame -1))))
+
+;; [08/28/2019] Enable icomplete
+(defvar rn/use-icomplete nil)
+(when rn/use-icomplete
+  (setq icomplete-hide-common-prefix t)  
+  (icomplete-mode 1)
+  (add-hook 'icomplete-minibuffer-setup-hook
+            (lambda () (setq-local max-mini-window-height 3))))
+
+;;;** Locate
+;; [08/25/2019] See https://www.emacswiki.org/emacs/MacOSTweaks#toc7
+;; and mdfind(1)
+(setq locate-command "mdfind")
 
 ;;;** Indentation (prefer spaces over tabs)
 (setq-default indent-tabs-mode nil)
@@ -282,6 +296,31 @@ to the right."
 (add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
 (add-hook 'scheme-mode-hook #'enable-paredit-mode)
 
+;;;* Mail
+;; See "~/.gnus.el" for gnus configuration
+
+;;;** Sending
+(require 'starttls)
+(setq message-send-mail-function 'smtpmail-send-it
+      smtpmail-auth-credentials (expand-file-name "~/.authinfo.gpg")
+      smtpmail-stream-type 'starttls
+      smtpmail-smtp-server "outlook.office365.com"
+      smtpmail-smtp-service 587)
+
+;;;** Gnus as system's default mail client (macOS)
+;; [08/25/2019] See https://www.emacswiki.org/emacs/MacOSTweaks#toc6
+(defun switch-to-or-start-gnus ()
+  "If there is no *Group*, call (gnus-start)"
+  (interactive)
+  (let ((group-buffer (get-buffer "*Group*")))
+    (if group-buffer
+        (switch-to-buffer group-buffer)
+      (gnus))))
+
+(setq url-mail-command
+      (lambda () (progn (switch-to-or-start-gnus)
+                        (gnus-group-mail))))
+
 ;;;* Comint
 (setq comint-buffer-maximum-size 2048
       comint-prompt-read-only t)
@@ -327,7 +366,7 @@ to the right."
 (setq ffap-require-prefix t)
 (ffap-bindings)
 
-(defvar rn/use-ido nil)
+(defvar rn/use-ido t)
 (when rn/use-ido
   (require 'ido)
   (setq ido-enable-flex-matching t
@@ -343,7 +382,7 @@ to the right."
   (ido-mode t))
 
 ;;;* Smex
-(defvar rn/use-smex nil)
+(defvar rn/use-smex t)
 (when rn/use-smex
   (require 'smex)
   (setq smex-save-file (expand-file-name ".smex-items" user-emacs-directory))
@@ -390,6 +429,17 @@ to the right."
 (define-key global-map (kbd "C-c <RET>") 'hui-select-thing)
 (define-key global-map (kbd "C-h h") 'hyperbole)
 
+;;;* Projectile
+(require 'projectile)
+(define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
+(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+
+(setq projectile-project-search-path '("~/"))
+(setq projectile-indexing-method 'alien
+      projectile-switch-project-action 'projectile-dired)
+
+(projectile-mode 1)
+
 ;;;* Outline mode
 (require 'outline)
 (define-key outline-minor-mode-map (kbd "TAB")
@@ -419,6 +469,9 @@ to the right."
 (require 'magit)
 (define-key global-map (kbd "C-x g") 'magit-status)
 (define-key global-map (kbd "C-c M-g") 'magit-dispatch-popup)
+
+;;;* Compilation
+(define-key global-map (kbd "C-c k") 'compile)
 
 ;;;* Languages
 ;;;** C
@@ -458,10 +511,10 @@ to the right."
 (require 'proof-general)
 (setq proof-splash-enable nil)
 (setq coq-compile-before-require t
-      coq-diffs 'on
+      coq-diffs 'on                     ; pg only supports this for Coq >= 8.10
       proof-auto-raise-buffers nil
       proof-three-window-enable t
-      ;; proof-follow-mode 'followdown
+      proof-follow-mode 'followdown
       PA-one-command-per-line nil)
 (setq company-coq-disabled-features '(prettify-symbols smart-subscripts))
 (add-hook 'coq-mode-hook 'company-coq-mode)
@@ -503,7 +556,10 @@ to the right."
 ;; TODO: Defer loading until actually required.  Consider adding rules
 ;; to `auto-mode-alist'.
 (setq twelf-root "/Users/rnagasam/.smackage/lib/twelf/v1.7.1/")
-(load (concat twelf-root "emacs/twelf-init.el"))
+(let* ((twelf-root "/Users/rnagasam/.smackage/lib/twelf/v1.7.1/")
+       (twelf-init-file (concat twelf-root "emacs/twelf-init.el")))
+  (if (file-exists-p twelf-init-file)
+      (load twelf-init-file)))
 
 ;;;* Document Preperation
 ;;;** HTML
@@ -516,7 +572,7 @@ to the right."
 ;; [08/12/2019] auctex installed manually at
 ;; ~/.emacs.d/site-lisp/auctex-12.1
 (load "auctex.el" nil t t)
-(load "preview-latex.el" nil t t)
+(load "preview.el" nil t t)
 
 (setq TeX-auto-save t
       TeX-parse-self t)
@@ -557,8 +613,9 @@ was previewed before."
 (require 'ox-latex)
 
 (setq org-todo-keywords
-      '((sequence "TODO(t)" "FEEDBACK(f@/!)" "VERIFY(v)" "|"
-                  "DONE(d)" "CANCELLED(c)")))
+      '((sequence "TODO(t)" "WAIT(w@/!)" "VERIFY(v)" "|"
+                  "DONE(d)" "CANCELLED(c)")
+        (sequence "FUTURE" "NEXT" "REVIEW" "|" "READ")))
 
 (setq org-log-done 'time
       org-enforce-todo-dependencies t
@@ -574,7 +631,7 @@ was previewed before."
       org-use-sub-superscripts t
       org-return-follows-link t)
 
-(setq org-default-notes-file "~/org/refile.org")
+(setq org-default-notes-file "~/org/tasks.org")
 (setq org-refile-targets '((nil :maxlevel . 3)
                            (org-agenda-files :maxlevel . 3))
       org-refile-allow-creating-parent-nodes 'confirm)
