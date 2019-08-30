@@ -273,6 +273,12 @@ to the right."
     (backward-word)
     (kill-word 1)))
 
+(defun rn/indent-buffer ()
+  "Indent the whole buffer using `indent-region'"
+  (interactive)
+  (indent-region (point-min) (point-max)))
+(define-key global-map (kbd "C-c C-M-\\") 'rn/indent-buffer)
+
 ;;;*** Keybindings
 (define-key rn/movement-map (kbd "i") 'rn/delete-between-pair)
 (define-key rn/movement-map (kbd "w") 'rn/kill-word)
@@ -307,6 +313,35 @@ to the right."
       smtpmail-smtp-server "outlook.office365.com"
       smtpmail-smtp-service 587)
 
+;; See https://www.emacswiki.org/emacs/MessageMode
+(setq message-default-mail-headers "Cc: \nBcc: \n"
+      message-auto-save-directory "~/Mail/drafts")
+
+(defun rn/message-mode-setup ()
+  (setq-local fill-column 72)
+  (turn-on-auto-fill))
+(add-hook 'message-mode-hook 'rn/message-mode-setup)
+
+;;;** BBDB
+;; [08/28/2019] See
+;; https://stackoverflow.com/questions/22174756/insert-current-entry-into-bbdb
+(require 'bbdb)
+
+(bbdb-initialize 'gnus 'message)
+(setq bbdb-message-all-addresses t
+      ;; bbdb-mua-auto-update-p 'query
+      bbdb-mua-pop-up nil
+      bbdb-use-pop-up nil
+      bbdb-message-pop-up nil
+      bbdb-complete-mail-allow-cycling t
+      bbdb-mua-update-interactive-p '(query . create))
+(bbdb-mua-auto-update-init 'gnus 'message)
+
+(add-hook
+ 'gnus-summary-mode-hook
+ (lambda ()
+   (define-key gnus-summary-mode-map (kbd ";") 'bbdb-mua-edit-field)))
+
 ;;;** Gnus as system's default mail client (macOS)
 ;; [08/25/2019] See https://www.emacswiki.org/emacs/MacOSTweaks#toc6
 (defun switch-to-or-start-gnus ()
@@ -334,8 +369,12 @@ to the right."
   ;; [08/16/2019] M-RET is bound to `eshell-queue-input' by default.
   ;; Removing this binding lets us use Hyperboles M-RET instead --
   ;; which is far more useful.
-  (local-set-key (kbd "M-<RET>") nil))
+  (local-set-key (kbd "M-<RET>") nil)
+  (setq eshell-destroy-buffer-when-process-dies t))
 (add-hook 'eshell-mode-hook 'rn/setup-eshell)
+
+(require 'em-term)
+(add-to-list 'eshell-visual-commands "htop")
 
 ;;;* Dired
 (require 'dired)
@@ -613,7 +652,7 @@ was previewed before."
 (require 'ox-latex)
 
 (setq org-todo-keywords
-      '((sequence "TODO(t)" "WAIT(w@/!)" "VERIFY(v)" "|"
+      '((sequence "TODO(t)" "WAIT(w@/!)" "VERIFY(v)" "MEETING(m)" "|"
                   "DONE(d)" "CANCELLED(c)")
         (sequence "FUTURE" "NEXT" "REVIEW" "|" "READ")))
 
@@ -623,7 +662,8 @@ was previewed before."
 
 (setq org-agenda-files '("~/org")
       org-agenda-window-setup 'current-window
-      org-agenda-ndays 7)
+      org-agenda-ndays 7
+      org-agenda-skip-scheduled-if-done t)
 
 (setq org-use-fast-todo-selection t
       org-treat-S-cursor-todo-selection-as-state-change t
@@ -637,8 +677,10 @@ was previewed before."
       org-refile-allow-creating-parent-nodes 'confirm)
 
 (setq org-capture-templates
-      '(("t" "todo" entry (file "~/org/refile.org")
-         "* TODO %?\n%U\n")))
+      '(("t" "todo" entry (file org-default-notes-file)
+         "* TODO %?\n%U\n")
+        ("m" "meeting" entry (file org-default-notes-file)
+         "* MEETING with %? :MEETING:\n%t")))
 
 (defun rn/show-agenda-and-todo (&optional arg)
   (interactive "P")
@@ -693,6 +735,15 @@ was previewed before."
 ;;;** Digital paper
 (setq dpt-addr "10.0.0.170")
 (require 'dpt-mode)
+
+;;;** Insert date
+;; [08/29/2019] See https://www.emacswiki.org/emacs/InsertDate
+(defun rn/insert-date ()
+  "Insert current date as \"[MM/DD/YYYY]\" at point."
+  (interactive)
+  (insert (format-time-string "[%m/%d/%Y]")))
+
+(define-key global-map (kbd "C-c d") 'rn/insert-date)
 
 ;;;*
 ;;; Local Variables:
