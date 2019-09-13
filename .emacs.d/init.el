@@ -302,6 +302,9 @@ to the right."
 (add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
 (add-hook 'scheme-mode-hook #'enable-paredit-mode)
 
+;;;* Spell checking
+(setq ispell-program-name "/usr/local/bin/aspell")
+
 ;;;* Mail
 ;; See "~/.gnus.el" for gnus configuration
 
@@ -454,7 +457,6 @@ to the right."
 (setq hpath:display-where 'this-window)
 
 ;; [08/21/2019] Is `hmouse-install' required?
-(hmouse-unshifted-setup)
 (hmouse-install)
 
 ;;;** Keybindings
@@ -473,7 +475,7 @@ to the right."
 (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
 (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 
-(setq projectile-project-search-path '("~/"))
+(setq projectile-project-search-path '("~/" "~/src"))
 (setq projectile-indexing-method 'alien
       projectile-switch-project-action 'projectile-dired)
 
@@ -527,7 +529,11 @@ to the right."
 ;;;** OCaml
 (require 'tuareg)
 (defun rn/setup-tuareg-mode ()
-  (tuareg-opam-update-env "4.07.1")
+  (tuareg-opam-update-env "default")
+  (require 'ocp-indent)
+  (setq-local merlin-completion-with-doc t)
+  (setq-local indent-line-function 'ocp-indent-line)
+  (setq-local indent-region-function 'ocp-indent-region)
   (setq show-trailing-whitespace t)
   (when (fboundp 'prettify-symbols-mode)
     (prettify-symbols-mode)))
@@ -541,8 +547,7 @@ to the right."
     (autoload 'merlin-mode "merlin" nil t nil)
     (add-hook 'tuareg-mode-hook 'merlin-mode t)
     (add-hook 'caml-mode-hook 'merlin-mode t)
-    (setq merlin-command 'opam)
-    (require 'ocp-indent)))
+    (setq merlin-command 'opam)))
 (with-eval-after-load 'company
   (add-to-list 'company-backends 'merlin-company-backend))
 
@@ -551,11 +556,12 @@ to the right."
 (setq proof-splash-enable nil)
 (setq coq-compile-before-require t
       coq-diffs 'on                     ; pg only supports this for Coq >= 8.10
-      proof-auto-raise-buffers nil
+      proof-auto-raise-buffers t
       proof-three-window-enable t
+      proof-fast-process-buffer t
       proof-follow-mode 'followdown
       PA-one-command-per-line nil)
-(setq company-coq-disabled-features '(prettify-symbols smart-subscripts))
+;; (setq company-coq-disabled-features '(prettify-symbols smart-subscripts))
 (add-hook 'coq-mode-hook 'company-coq-mode)
 
 ;;;** Prolog
@@ -650,6 +656,7 @@ was previewed before."
 (require 'org-agenda)
 (require 'ox-beamer)
 (require 'ox-latex)
+(require 'org-tempo)
 
 (setq org-todo-keywords
       '((sequence "TODO(t)" "WAIT(w@/!)" "VERIFY(v)" "MEETING(m)" "|"
@@ -678,9 +685,9 @@ was previewed before."
 
 (setq org-capture-templates
       '(("t" "todo" entry (file org-default-notes-file)
-         "* TODO %?\n%U\n")
+         "* TODO %?\n%U\n" :empty-lines 1)
         ("m" "meeting" entry (file org-default-notes-file)
-         "* MEETING with %? :MEETING:\n%t")))
+         "* MEETING with %? :MEETING:\n%U" :empty-lines 1)))
 
 (defun rn/show-agenda-and-todo (&optional arg)
   (interactive "P")
@@ -704,6 +711,8 @@ was previewed before."
                          (interactive)
                          (let ((reftex-cite-format 'org))
                            (reftex-citation))))))
+
+(add-hook 'org-mode-hook 'turn-on-auto-fill)
 
 (define-key global-map (kbd "C-c a") 'org-agenda)
 (define-key global-map (kbd "C-c z") 'rn/show-agenda-and-todo)
